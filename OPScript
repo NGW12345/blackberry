@@ -305,6 +305,8 @@ local SellToggle = Tabs.AutoFarm:AddToggle("MyToggle", {
     Title = "Auto Sell", 
     Description = "Sell Anywhere",
     Default = false,
+    Flag = "AutoSellEnabled", -- Unique ID for config
+    Save = true,              -- Enables saving this toggle
     Callback = function(state)
         isAutoSelling = state
         while isAutoSelling do
