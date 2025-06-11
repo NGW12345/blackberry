@@ -499,6 +499,4 @@ Tabs.Teleports:AddToggle("TeleportFromSpawnToggle", {
     end
 })
 
-SaveManager:SetFolder("FluentScriptHub/specific-game")
-
 SaveManager:LoadAutoloadConfig()
