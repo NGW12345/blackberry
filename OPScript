@@ -25,11 +25,11 @@ local Tabs = {
 local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
 local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
 
-SaveManager:SetLibrary(Fluent)
+--SaveManager:SetLibrary(Fluent)
 InterfaceManager:SetLibrary(Fluent)
 
 InterfaceManager:BuildInterfaceSection(Tabs.Settings)
-SaveManager:BuildConfigSection(Tabs.Settings)
+--SaveManager:BuildConfigSection(Tabs.Settings)
 
 Window:SelectTab(1)
 
@@ -499,4 +499,4 @@ Tabs.Teleports:AddToggle("TeleportFromSpawnToggle", {
     end
 })
 
-SaveManager:LoadAutoloadConfig()
+-- SaveManager:LoadAutoloadConfig()
