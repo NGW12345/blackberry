@@ -112,7 +112,7 @@ local Dropdown = Tabs.AutoFarm:AddDropdown("OreDropdown", {
 })
 
 -- Toggle for AutoFarm
-local Toggle = Tabs.AutoFarm:AddToggle("MyToggle", 
+local Toggle = Tabs.AutoFarm:AddToggle("SelectedOreAutoFarmToggle", 
 {
     Title = "Selected Ore AutoFarm", 
     Description = "Teleports to each ore and mines it",
@@ -230,7 +230,7 @@ local Toggle = Tabs.AutoFarm:AddToggle("RareOreFinderToggle",
 
 local Section = Tabs.AutoFarm:AddSection("Auto Buy Postions")
 
-local Toggle = Tabs.AutoFarm:AddToggle("MyToggle", 
+local Toggle = Tabs.AutoFarm:AddToggle("LuckyPotionToggle", 
 {
     Title = "Lucky Potion", 
     Description = nil,
@@ -246,7 +246,7 @@ local Toggle = Tabs.AutoFarm:AddToggle("MyToggle",
     end 
 })
 
-local Toggle = Tabs.AutoFarm:AddToggle("MyToggle", 
+local Toggle = Tabs.AutoFarm:AddToggle("BulkPotionToggle", 
 {
     Title = "Bulk Potion", 
     Description = nil,
@@ -262,7 +262,7 @@ local Toggle = Tabs.AutoFarm:AddToggle("MyToggle",
     end 
 })
 
-local Toggle = Tabs.AutoFarm:AddToggle("MyToggle", 
+local Toggle = Tabs.AutoFarm:AddToggle("SpeedyPotionToggle", 
 {
     Title = "Speedy Potion", 
     Description = nil,
@@ -279,7 +279,7 @@ local Toggle = Tabs.AutoFarm:AddToggle("MyToggle",
     end 
 })
 
-local Toggle = Tabs.AutoFarm:AddToggle("MyToggle", 
+local Toggle = Tabs.AutoFarm:AddToggle("StatsPotionToggle", 
 {
     Title = "Stats Potion", 
     Description = nil,
@@ -301,7 +301,7 @@ Section:AddParagraph({
     Title = "Auto Selling, Clicking and Farming"
 })
 
-local SellToggle = Tabs.AutoFarm:AddToggle("MyToggle", {
+local SellToggle = Tabs.AutoFarm:AddToggle("AutoSellToggle", {
     Title = "Auto Sell", 
     Description = "Sell Anywhere",
     Default = false,
@@ -315,7 +315,7 @@ local SellToggle = Tabs.AutoFarm:AddToggle("MyToggle", {
     end
 })
 
-local Toggle = Tabs.AutoFarm:AddToggle("MyToggle", 
+local Toggle = Tabs.AutoFarm:AddToggle("AutoClassToggle", 
 {
     Title = "Auto Class", 
     Description = "Auto rolls class anywhere on map",
@@ -329,7 +329,7 @@ local Toggle = Tabs.AutoFarm:AddToggle("MyToggle",
     end 
 })
 
-local Toggle = Tabs.AutoFarm:AddToggle("MyToggle", 
+local Toggle = Tabs.AutoFarm:AddToggle("SkullsAutoFarmToggle", 
 {
     Title = "Skulls AutoFarm", 
     Description = nil,
@@ -347,7 +347,7 @@ local Toggle = Tabs.AutoFarm:AddToggle("MyToggle",
     end    
 })
 
-local Toggle = Tabs.AutoFarm:AddToggle("MyToggle", 
+local Toggle = Tabs.AutoFarm:AddToggle("InfernoAutoFarmToggle", 
 {
     Title = "Inferno AutoFarm", 
     Description = nil,
@@ -363,7 +363,7 @@ local Toggle = Tabs.AutoFarm:AddToggle("MyToggle",
     end    
 })
 
-local ClickingToggle = Tabs.AutoFarm:AddToggle("MyToggle", 
+local ClickingToggle = Tabs.AutoFarm:AddToggle("SubzeroAutoClickToggle", 
 {
     Title = "Subzero AutoClick", 
     Description = nil,
@@ -435,7 +435,7 @@ local safeCFrame = CFrame.new(96.0919952, 5.99999952, 102.514236, 0.158584878, -
 
 local isTeleportMonitorActive = false
 
-local Toggle = Tabs.Teleports:AddToggle("MyToggle", 
+local Toggle = Tabs.Teleports:AddToggle("AntiTeleportToSpawnToggle", 
 {
     Title = "Anti Teleport to Spawn", 
     Description = "Teleports you back to mines if sent back to spawn",
