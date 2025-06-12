@@ -377,6 +377,31 @@ local ClickingToggle = Tabs.AutoFarm:AddToggle("SubzeroAutoClickToggle",
     end
 })
 
+local Toggle = Tabs.Teleports:AddToggle("AutoServerHopToggle", {
+    Title = "Auto Server Hop (1 min delay)", 
+    Description = "Waits 1 minute after enabling, then hops servers.",
+    Default = false,
+    Callback = function(state)
+        if state then
+            task.spawn(function()
+                print("Auto Server Hop toggle enabled. Waiting 60 seconds...")
+                task.wait(60)
+                
+                -- Confirm it's still on after waiting
+                local stillEnabled = Tabs.Teleports.Flags.AutoServerHopToggle
+                if stillEnabled then
+                    print("Time's up. Executing server hop...")
+                    loadstring(game:HttpGet("https://raw.githubusercontent.com/78n/Amity/main/AutoServerHop.lua"))()
+                else
+                    print("Toggle was turned off before 60 seconds passed.")
+                end
+            end)
+        else
+            print("Auto Server Hop toggle turned off.")
+        end
+    end
+})
+
 local Section = Tabs.Teleports:AddSection("Runes")
 
 -- Rune CFrame positions
