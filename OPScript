@@ -184,7 +184,7 @@ local rareOres = {
 
 local isRareAutoFarming = false
 
-local Toggle = Tabs.AutoFarm:AddToggle("MyToggle", 
+local Toggle = Tabs.AutoFarm:AddToggle("RareOreFinderToggle", 
 {
     Title = "Rare Ore Finder", 
     Description = "Teleports and mines all rare ores",
@@ -498,37 +498,6 @@ Tabs.Teleports:AddToggle("TeleportFromSpawnToggle", {
         end
     end
 })
-
-local TeleportService = game:GetService("TeleportService")
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
-
-local Toggle = Tabs.Teleports:AddToggle("AutoRejoinToggle", {
-    Title = "Auto Rejoin",
-    Description = "Automatically rejoins the private server and reruns the script.",
-    Default = false,
-    Callback = function(state)
-        if state then
-            -- Script to rerun after rejoin
-            local yourScript = [[
-                loadstring(game:HttpGet("https://raw.githubusercontent.com/NGW12345/blackberry/main/OPScript"))()
-            ]]
-
-            -- Use exploit-specific queue if QueueOnTeleport isn't available
-            if queue_on_teleport then
-                queue_on_teleport(yourScript)
-            elseif syn and syn.queue_on_teleport then
-                syn.queue_on_teleport(yourScript)
-            else
-                warn("Teleport queue function not supported in this environment.")
-            end
-
-            -- Rejoin same private server
-            TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, LocalPlayer)
-        end
-    end
-})
-
 
 
 SaveManager:LoadAutoloadConfig()
