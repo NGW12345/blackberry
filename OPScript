@@ -384,52 +384,56 @@ local Players = game:GetService("Players")
 local Toggle = Tabs.Teleports:AddToggle("ServerHopToggle", 
 {
     Title = "Reliable Server Hop", 
-    Description = "Tries multiple times until a server is found.",
+    Description = "Waits 10s then tries multiple times to join a different public server.",
     Default = false,
     Callback = function(state)
         if state then
-            local req = syn and syn.request or http_request or request
-            if not req then
-                warn("Your executor does not support HTTP requests.")
-                return
-            end
+            task.spawn(function()
+                wait(10) -- ⏳ Delay before doing anything
 
-            local function waitForServers(maxAttempts, delayTime)
-                local placeId = game.PlaceId
-                local currentJobId = game.JobId
-                local cursor = ""
+                local req = syn and syn.request or http_request or request
+                if not req then
+                    warn("Your executor does not support HTTP requests.")
+                    return
+                end
 
-                for attempt = 1, maxAttempts do
-                    local success, response = pcall(function()
-                        return req({
-                            Url = string.format("https://games.roblox.com/v1/games/%d/servers/Public?sortOrder=Asc&limit=100&cursor=%s", placeId, cursor),
-                            Method = "GET"
-                        })
-                    end)
+                local function waitForServers(maxAttempts, delayTime)
+                    local placeId = game.PlaceId
+                    local currentJobId = game.JobId
+                    local cursor = ""
 
-                    if success and response and response.Body then
-                        local decoded = HttpService:JSONDecode(response.Body)
-                        if decoded and decoded.data and #decoded.data > 0 then
-                            for _, server in pairs(decoded.data) do
-                                if server.playing < server.maxPlayers and server.id ~= currentJobId then
-                                    return server.id
+                    for attempt = 1, maxAttempts do
+                        local success, response = pcall(function()
+                            return req({
+                                Url = string.format("https://games.roblox.com/v1/games/%d/servers/Public?sortOrder=Asc&limit=100&cursor=%s", placeId, cursor),
+                                Method = "GET"
+                            })
+                        end)
+
+                        if success and response and response.Body then
+                            local decoded = HttpService:JSONDecode(response.Body)
+                            if decoded and decoded.data and #decoded.data > 0 then
+                                for _, server in pairs(decoded.data) do
+                                    if server.playing < server.maxPlayers and server.id ~= currentJobId then
+                                        return server.id
+                                    end
                                 end
                             end
                         end
+
+                        wait(delayTime)
                     end
 
-                    wait(delayTime) -- Wait before retrying
+                    return nil
                 end
 
-                return nil
-            end
-
-            local serverId = waitForServers(10, 2) -- Tries 10 times, waiting 2s each
-            if serverId then
-                TeleportService:TeleportToPlaceInstance(game.PlaceId, serverId, Players.LocalPlayer)
-            else
-                warn("Failed to find a server after multiple attempts.")
-            end
+                local serverId = waitForServers(10, 4) -- Tries 10 times, waiting 2s each
+                if serverId then
+                    TeleportService:TeleportToPlaceInstance(game.PlaceId, serverId, Players.LocalPlayer)
+                else
+                    warn("Failed to find a server after multiple attempts.")
+                end
+            end)
         end
     end 
 })
