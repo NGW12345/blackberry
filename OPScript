@@ -383,13 +383,13 @@ local Players = game:GetService("Players")
 
 local Toggle = Tabs.Teleports:AddToggle("ServerHopToggle", 
 {
-    Title = "Reliable Server Hop", 
-    Description = "Waits 10s then tries multiple times to join a different public server.",
+    Title = "Crowded Server Hop", 
+    Description = "Waits 10s then hops to a random high-population server.",
     Default = false,
     Callback = function(state)
         if state then
             task.spawn(function()
-                wait(10) -- ⏳ Delay before doing anything
+                wait(20) -- ⏳ Wait before starting
 
                 local req = syn and syn.request or http_request or request
                 if not req then
@@ -397,12 +397,14 @@ local Toggle = Tabs.Teleports:AddToggle("ServerHopToggle",
                     return
                 end
 
-                local function waitForServers(maxAttempts, delayTime)
+                local function fetchServers(pagesToScan)
                     local placeId = game.PlaceId
                     local currentJobId = game.JobId
                     local cursor = ""
+                    local allServers = {}
+                    local pagesChecked = 0
 
-                    for attempt = 1, maxAttempts do
+                    while pagesChecked < pagesToScan do
                         local success, response = pcall(function()
                             return req({
                                 Url = string.format("https://games.roblox.com/v1/games/%d/servers/Public?sortOrder=Asc&limit=100&cursor=%s", placeId, cursor),
@@ -410,34 +412,59 @@ local Toggle = Tabs.Teleports:AddToggle("ServerHopToggle",
                             })
                         end)
 
-                        if success and response and response.Body then
-                            local decoded = HttpService:JSONDecode(response.Body)
-                            if decoded and decoded.data and #decoded.data > 0 then
-                                for _, server in pairs(decoded.data) do
-                                    if server.playing < server.maxPlayers and server.id ~= currentJobId then
-                                        return server.id
-                                    end
+                        if not success or not response or not response.Body then break end
+
+                        local decoded = HttpService:JSONDecode(response.Body)
+                        if decoded and decoded.data then
+                            for _, server in pairs(decoded.data) do
+                                if server.id ~= currentJobId and server.playing < server.maxPlayers then
+                                    table.insert(allServers, server)
                                 end
                             end
                         end
 
-                        wait(delayTime)
+                        if decoded.nextPageCursor then
+                            cursor = decoded.nextPageCursor
+                        else
+                            break
+                        end
+
+                        pagesChecked += 1
+                        wait(0.2)
+                    end
+
+                    return allServers
+                end
+
+                local function tryFindCrowdedServer(attempts, pagesPerAttempt, waitBetweenAttempts)
+                    for attempt = 1, attempts do
+                        local servers = fetchServers(pagesPerAttempt)
+
+                        if #servers > 0 then
+                            table.sort(servers, function(a, b)
+                                return a.playing > b.playing -- Most populated first
+                            end)
+
+                            local pickIndex = math.random(1, math.min(10, #servers))
+                            return servers[pickIndex].id
+                        end
+
+                        wait(waitBetweenAttempts)
                     end
 
                     return nil
                 end
 
-                local serverId = waitForServers(10, 4) -- Tries 10 times, waiting 2s each
-                if serverId then
-                    TeleportService:TeleportToPlaceInstance(game.PlaceId, serverId, Players.LocalPlayer)
+                local chosenServer = tryFindCrowdedServer(10, 5, 5) -- ⏳ Try 10 times, scanning 5 pages, 2s wait between
+                if chosenServer then
+                    TeleportService:TeleportToPlaceInstance(game.PlaceId, chosenServer, Players.LocalPlayer)
                 else
-                    warn("Failed to find a server after multiple attempts.")
+                    warn("Failed to find a crowded server after multiple attempts.")
                 end
             end)
         end
-    end 
+    end
 })
-
 
 
 
