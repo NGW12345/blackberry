@@ -499,5 +499,4 @@ Tabs.Teleports:AddToggle("TeleportFromSpawnToggle", {
     end
 })
 
-
 SaveManager:LoadAutoloadConfig()
