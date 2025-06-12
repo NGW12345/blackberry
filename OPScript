@@ -381,52 +381,54 @@ local HttpService = game:GetService("HttpService")
 local TeleportService = game:GetService("TeleportService")
 local Players = game:GetService("Players")
 
-local Toggle = Tabs.Teleports:AddToggle("RandomServerHopToggle", 
+local Toggle = Tabs.Teleports:AddToggle("ServerHopToggle", 
 {
-    Title = "Random Server Hop", 
-    Description = "Join a random public server that isn't full or the same one.",
+    Title = "Reliable Server Hop", 
+    Description = "Tries multiple times until a server is found.",
     Default = false,
     Callback = function(state)
         if state then
-            local function findServer()
-                local servers = {}
-                local req = syn and syn.request or http_request or request
-                local cursor = ""
-                local currentJobId = game.JobId
+            local req = syn and syn.request or http_request or request
+            if not req then
+                warn("Your executor does not support HTTP requests.")
+                return
+            end
+
+            local function waitForServers(maxAttempts, delayTime)
                 local placeId = game.PlaceId
+                local currentJobId = game.JobId
+                local cursor = ""
 
-                while true do
-                    local response = req({
-                        Url = string.format("https://games.roblox.com/v1/games/%d/servers/Public?sortOrder=Asc&limit=100&cursor=%s", placeId, cursor),
-                        Method = "GET"
-                    })
+                for attempt = 1, maxAttempts do
+                    local success, response = pcall(function()
+                        return req({
+                            Url = string.format("https://games.roblox.com/v1/games/%d/servers/Public?sortOrder=Asc&limit=100&cursor=%s", placeId, cursor),
+                            Method = "GET"
+                        })
+                    end)
 
-                    local data = HttpService:JSONDecode(response.Body)
-                    for _, server in pairs(data.data) do
-                        if server.playing < server.maxPlayers and server.id ~= currentJobId then
-                            table.insert(servers, server.id)
+                    if success and response and response.Body then
+                        local decoded = HttpService:JSONDecode(response.Body)
+                        if decoded and decoded.data and #decoded.data > 0 then
+                            for _, server in pairs(decoded.data) do
+                                if server.playing < server.maxPlayers and server.id ~= currentJobId then
+                                    return server.id
+                                end
+                            end
                         end
                     end
 
-                    if data.nextPageCursor then
-                        cursor = data.nextPageCursor
-                    else
-                        break
-                    end
+                    wait(delayTime) -- Wait before retrying
                 end
 
-                if #servers > 0 then
-                    return servers[math.random(1, #servers)]
-                else
-                    return nil
-                end
+                return nil
             end
 
-            local serverId = findServer()
+            local serverId = waitForServers(10, 2) -- Tries 10 times, waiting 2s each
             if serverId then
                 TeleportService:TeleportToPlaceInstance(game.PlaceId, serverId, Players.LocalPlayer)
             else
-                warn("No available servers found.")
+                warn("Failed to find a server after multiple attempts.")
             end
         end
     end 
