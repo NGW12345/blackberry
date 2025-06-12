@@ -509,21 +509,26 @@ local Toggle = Tabs.Teleports:AddToggle("AutoRejoinToggle", {
     Default = false,
     Callback = function(state)
         if state then
-            -- Replace this with your full script or a loadstring URL
-            local yourScript = [[ loadstring(game:HttpGet("https://raw.githubusercontent.com/NGW12345/blackberry/main/OPScript"))()
+            -- Script to rerun after rejoin
+            local yourScript = [[
+                loadstring(game:HttpGet("https://raw.githubusercontent.com/NGW12345/blackberry/main/OPScript"))()
             ]]
 
-            -- Queue it to run after teleport
-            TeleportService:QueueOnTeleport(yourScript)
+            -- Use exploit-specific queue if QueueOnTeleport isn't available
+            if queue_on_teleport then
+                queue_on_teleport(yourScript)
+            elseif syn and syn.queue_on_teleport then
+                syn.queue_on_teleport(yourScript)
+            else
+                warn("Teleport queue function not supported in this environment.")
+            end
 
-            -- Teleport to same private server instance
-            local placeId = game.PlaceId
-            local jobId = game.JobId
-
-            TeleportService:TeleportToPlaceInstance(placeId, jobId, LocalPlayer)
+            -- Rejoin same private server
+            TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, LocalPlayer)
         end
     end
 })
+
 
 
 SaveManager:LoadAutoloadConfig()
