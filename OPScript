@@ -377,6 +377,64 @@ local ClickingToggle = Tabs.AutoFarm:AddToggle("SubzeroAutoClickToggle",
     end
 })
 
+local HttpService = game:GetService("HttpService")
+local TeleportService = game:GetService("TeleportService")
+local Players = game:GetService("Players")
+
+local Toggle = Tabs.Teleports:AddToggle("RandomServerHopToggle", 
+{
+    Title = "Random Server Hop", 
+    Description = "Join a random public server that isn't full or the same one.",
+    Default = false,
+    Callback = function(state)
+        if state then
+            local function findServer()
+                local servers = {}
+                local req = syn and syn.request or http_request or request
+                local cursor = ""
+                local currentJobId = game.JobId
+                local placeId = game.PlaceId
+
+                while true do
+                    local response = req({
+                        Url = string.format("https://games.roblox.com/v1/games/%d/servers/Public?sortOrder=Asc&limit=100&cursor=%s", placeId, cursor),
+                        Method = "GET"
+                    })
+
+                    local data = HttpService:JSONDecode(response.Body)
+                    for _, server in pairs(data.data) do
+                        if server.playing < server.maxPlayers and server.id ~= currentJobId then
+                            table.insert(servers, server.id)
+                        end
+                    end
+
+                    if data.nextPageCursor then
+                        cursor = data.nextPageCursor
+                    else
+                        break
+                    end
+                end
+
+                if #servers > 0 then
+                    return servers[math.random(1, #servers)]
+                else
+                    return nil
+                end
+            end
+
+            local serverId = findServer()
+            if serverId then
+                TeleportService:TeleportToPlaceInstance(game.PlaceId, serverId, Players.LocalPlayer)
+            else
+                warn("No available servers found.")
+            end
+        end
+    end 
+})
+
+
+
+
 local Section = Tabs.Teleports:AddSection("Runes")
 
 -- Rune CFrame positions
@@ -498,5 +556,6 @@ Tabs.Teleports:AddToggle("TeleportFromSpawnToggle", {
         end
     end
 })
+
 
 SaveManager:LoadAutoloadConfig()
