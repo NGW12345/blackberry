@@ -22,14 +22,14 @@ local Tabs = {
     Settings = Window:AddTab({ Title = "Settings", Icon = "settings" })
 }
 
---local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
+local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
 local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
 
---SaveManager:SetLibrary(Fluent)
+SaveManager:SetLibrary(Fluent)
 InterfaceManager:SetLibrary(Fluent)
 
 InterfaceManager:BuildInterfaceSection(Tabs.Settings)
---SaveManager:BuildConfigSection(Tabs.Settings)
+SaveManager:BuildConfigSection(Tabs.Settings)
 
 Window:SelectTab(1)
 
@@ -499,4 +499,31 @@ Tabs.Teleports:AddToggle("TeleportFromSpawnToggle", {
     end
 })
 
--- SaveManager:LoadAutoloadConfig()
+local TeleportService = game:GetService("TeleportService")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+local Toggle = Tabs.Teleports:AddToggle("AutoRejoinToggle", {
+    Title = "Auto Rejoin",
+    Description = "Automatically rejoins the private server and reruns the script.",
+    Default = false,
+    Callback = function(state)
+        if state then
+            -- Replace this with your full script or a loadstring URL
+            local yourScript = [[ loadstring(game:HttpGet("https://raw.githubusercontent.com/NGW12345/blackberry/main/OPScript"))()
+            ]]
+
+            -- Queue it to run after teleport
+            TeleportService:QueueOnTeleport(yourScript)
+
+            -- Teleport to same private server instance
+            local placeId = game.PlaceId
+            local jobId = game.JobId
+
+            TeleportService:TeleportToPlaceInstance(placeId, jobId, LocalPlayer)
+        end
+    end
+})
+
+
+SaveManager:LoadAutoloadConfig()
