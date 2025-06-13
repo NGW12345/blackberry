@@ -33,8 +33,6 @@ SaveManager:BuildConfigSection(Tabs.Settings)
 
 Window:SelectTab(1)
 
---[[
-
 local Section = Tabs.AutoFarm:AddSection("Auto Mining")
 
 local isAutoFarm = false
@@ -87,7 +85,7 @@ task.spawn(function()
             if ore then
                 local args = { ore }
                 game:GetService("ReplicatedStorage").Events.MineOre:FireServer(unpack(args))
-                task.wait(0.05) -- slight delay between mining
+                wait() -- slight delay between mining
             else
                 task.wait(0.1) -- no ore found, wait a bit longer
             end
@@ -96,82 +94,6 @@ task.spawn(function()
         end
     end
 end)
-
-]]--
-local vim = game:GetService("VirtualInputManager")
-local camera = workspace.CurrentCamera
-local player = game.Players.LocalPlayer
-local rootPart = player.Character:WaitForChild("HumanoidRootPart")
-
-local isAutoCursorMine = false
-
-local function holdMouseDown()
-    vim:SendMouseButtonEvent(0, 0, 0, true, game, 0)
-end
-
-local function releaseMouse()
-    vim:SendMouseButtonEvent(0, 0, 0, false, game, 0)
-end
-
--- Find ore under player
-local function getClosestOreBelow(verticalRange, toleranceRadius)
-    local rootPos = rootPart.Position
-    local closestOre = nil
-    local closestDistance = math.huge
-
-    for _, ore in pairs(workspace.Ores:GetChildren()) do
-        if ore:IsA("Part") then
-            local orePos = ore.Position
-            local verticalDistance = rootPos.Y - orePos.Y
-            if verticalDistance > 0 and verticalDistance <= verticalRange then
-                local horizontalDist = (Vector3.new(rootPos.X, 0, rootPos.Z) - Vector3.new(orePos.X, 0, orePos.Z)).Magnitude
-                if horizontalDist <= toleranceRadius and verticalDistance < closestDistance then
-                    closestDistance = verticalDistance
-                    closestOre = ore
-                end
-            end
-        end
-    end
-
-    return closestOre
-end
-
--- Toggle
-local AutoCursorToggle = Tabs.AutoFarm:AddToggle("CursorAutoMineToggle", {
-    Title = "AutoFarm2 (Camera Aim + Left-Click)",
-    Description = "Aims camera at ore and holds left-click to mine fast",
-    Default = false,
-    Callback = function(state)
-        isAutoCursorMine = state
-        if not state then
-            releaseMouse()
-        end
-    end
-})
-
--- Background loop
-task.spawn(function()
-    while true do
-        if isAutoCursorMine then
-            local ore = getClosestOreBelow(40, 6)
-            if ore then
-                -- Move camera to look at ore
-                camera.CFrame = CFrame.new(camera.CFrame.Position, ore.Position)
-
-                -- Wait a moment for view to update
-                task.wait(0.05)
-
-                -- Hold left-click (mining will trigger if the game supports it via mouse position)
-                holdMouseDown()
-            end
-            task.wait(0.1)
-        else
-            task.wait(0.2)
-        end
-    end
-end)
-
-
 
 
 local selectedOre = 1
