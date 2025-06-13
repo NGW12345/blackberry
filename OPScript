@@ -106,66 +106,56 @@ local Dropdown = Tabs.AutoFarm:AddDropdown("OreDropdown", {
         selectedOre = value
     end
 })
+local miningRange = 10 -- Adjust this to your game's mining distance limit
+local teleportedOres = {}
 
--- Toggle for AutoFarm
-local Toggle = Tabs.AutoFarm:AddToggle("SelectedOreAutoFarmToggle", 
-{
-    Title = "Selected Ore AutoFarm", 
-    Description = "Teleports to each ore and mines it",
+local TeleportAndMineToggle = Tabs.AutoFarm:AddToggle("TeleportAndMineSelectedOre", {
+    Title = "Teleport & Mine Selected Ore",
+    Description = "Teleports selected ore near you if too far, then mines it",
     Default = false,
-    Keybind = nil,
     Callback = function(state)
-        isAutoMining = state
-
-        -- Stop old thread if it exists
-        if miningThread then
-            miningThread = nil
-        end
-
-        -- Start new thread
         if state then
-            miningThread = task.spawn(function()
-                while isAutoMining do
-                    if selectedOre then
-                        local oresFolder = game.Workspace:FindFirstChild("Ores")
+            task.spawn(function()
+                while state do
+                    if not rootPart or not rootPart.Parent or not selectedOre then
+                        task.wait(0.5)
+                    else
+                        local oresFolder = workspace:FindFirstChild("Ores")
                         if oresFolder then
-                            -- Gather and shuffle matching ores
-                            local matchingOres = {}
                             for _, ore in pairs(oresFolder:GetChildren()) do
-                                if ore.Name == selectedOre and ore:IsA("BasePart") then
-                                    table.insert(matchingOres, ore)
-                                end
-                            end
-                            for i = #matchingOres, 2, -1 do
-                                local j = math.random(1, i)
-                                matchingOres[i], matchingOres[j] = matchingOres[j], matchingOres[i]
-                            end
+                                if ore.Name == selectedOre and ore:IsA("BasePart") and ore.Parent then
+                                    local dist = (ore.Position - rootPart.Position).Magnitude
 
-                            -- Loop through shuffled ores
-                            for _, ore in ipairs(matchingOres) do
-                                if not isAutoMining then break end
-                                if ore and ore.Parent then
-                                    -- Teleport above the ore
-                                    ore.CFrame = rootPart.CFrame - Vector3.new(0, 3, 0)
-                                    task.wait(0.2)
-
-                                    -- Fire the mining remote
-                                    game:GetService("ReplicatedStorage").Events.MineOre:FireServer(ore)
-
-                                    -- Wait until the ore is removed
-                                    local startTime = tick()
-                                    while ore.Parent and (tick() - startTime < 3) do
-                                        task.wait(0.1)
+                                    if dist > miningRange then
+                                        -- Teleport ore visually near player to be in mining range
+                                        ore.CFrame = rootPart.CFrame - Vector3.new(0, 3, 0)
+                                        teleportedOres[ore] = true
+                                        dist = (ore.Position - rootPart.Position).Magnitude -- update distance
+                                    elseif teleportedOres[ore] and dist <= miningRange then
+                                        teleportedOres[ore] = nil -- reset if close enough
                                     end
 
-                                    task.wait(0.2) -- small buffer
+                                    if dist <= miningRange then
+                                        -- Mine the ore
+                                        game:GetService("ReplicatedStorage").Events.MineOre:FireServer(ore)
+
+                                        -- Wait for ore to disappear or timeout
+                                        local startTime = tick()
+                                        while ore.Parent and (tick() - startTime < 3) do
+                                            task.wait(0.1)
+                                        end
+
+                                        task.wait(0.2) -- small delay before next ore
+                                    end
                                 end
                             end
                         end
+                        task.wait(0.3)
                     end
-                    task.wait(1) -- delay before scanning again
                 end
             end)
+        else
+            teleportedOres = {}
         end
     end
 })
