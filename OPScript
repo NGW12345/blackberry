@@ -516,7 +516,6 @@ local Toggle = Tabs.Teleports:AddToggle("GhostModeToggle",
                 -- Keep Humanoid, Head, HumanoidRootPart, Torso(s)
                 if not (
                     part:IsA("Humanoid") or
-                    part.Name == "Head" or
                     part.Name == "HumanoidRootPart" or
                     part.Name == "Torso" or
                     part.Name == "UpperTorso" or
