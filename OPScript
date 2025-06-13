@@ -33,6 +33,8 @@ SaveManager:BuildConfigSection(Tabs.Settings)
 
 Window:SelectTab(1)
 
+--[[
+
 local Section = Tabs.AutoFarm:AddSection("Auto Mining")
 
 local isAutoFarm = false
@@ -85,7 +87,7 @@ task.spawn(function()
             if ore then
                 local args = { ore }
                 game:GetService("ReplicatedStorage").Events.MineOre:FireServer(unpack(args))
-                wait() -- slight delay between mining
+                task.wait(0.05) -- slight delay between mining
             else
                 task.wait(0.1) -- no ore found, wait a bit longer
             end
@@ -94,6 +96,61 @@ task.spawn(function()
         end
     end
 end)
+
+]]--
+
+local RunService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local isAutoFarm = false
+local rootPart = game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+
+-- Utility: Find closest ore roughly straight below player within verticalRange
+local function getClosestOreBelow(verticalRange, toleranceRadius)
+    local rootPos = rootPart.Position
+    local closestOre = nil
+    local closestDistance = math.huge
+
+    for _, ore in pairs(workspace.Ores:GetChildren()) do
+        if ore:IsA("Part") then
+            local orePos = ore.Position
+            local verticalDistance = rootPos.Y - orePos.Y
+            if verticalDistance > 0 and verticalDistance <= verticalRange then
+                local horizontalDist = (Vector3.new(rootPos.X, 0, rootPos.Z) - Vector3.new(orePos.X, 0, orePos.Z)).Magnitude
+                if horizontalDist <= toleranceRadius and verticalDistance < closestDistance then
+                    closestDistance = verticalDistance
+                    closestOre = ore
+                end
+            end
+        end
+    end
+
+    return closestOre
+end
+
+-- Toggle Setup
+local FarmToggle = Tabs.AutoFarm:AddToggle("AutoFarmToggle", {
+    Title = "AutoFarm2 (Straight Down)",
+    Description = "Automatically mines ores straight down below you",
+    Default = false,
+    Callback = function(state)
+        isAutoFarm = state
+        print(isAutoFarm and "AutoFarm Enabled" or "AutoFarm Disabled")
+    end
+})
+
+-- Mining loop connected to RenderStepped for fast execution
+RunService.RenderStepped:Connect(function()
+    if isAutoFarm and rootPart then
+        local verticalRange = 30
+        local toleranceRadius = 4
+        local ore = getClosestOreBelow(verticalRange, toleranceRadius)
+        if ore then
+            ReplicatedStorage.Events.MineOre:FireServer(ore)
+        end
+    end
+end)
+
 
 
 local selectedOre = 1
