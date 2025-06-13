@@ -128,6 +128,23 @@ local function getClosestOreBelow(verticalRange, toleranceRadius)
     return closestOre
 end
 
+-- New Utility: Find any ore that's overlapping or slightly above the player (within ~2 studs)
+local function getNearbyBlockingOre()
+    local rootPos = rootPart.Position
+    for _, ore in pairs(workspace.Ores:GetChildren()) do
+        if ore:IsA("Part") then
+            local orePos = ore.Position
+            local verticalOffset = orePos.Y - rootPos.Y
+            local horizontalDist = (Vector3.new(rootPos.X, 0, rootPos.Z) - Vector3.new(orePos.X, 0, orePos.Z)).Magnitude
+
+            if verticalOffset >= -2 and verticalOffset <= 4 and horizontalDist <= 3 then
+                return ore
+            end
+        end
+    end
+    return nil
+end
+
 -- Toggle Setup
 local FarmToggle = Tabs.AutoFarm:AddToggle("AutoFarmToggle2", {
     Title = "AutoFarm2 (Straight Down)",
@@ -139,14 +156,22 @@ local FarmToggle = Tabs.AutoFarm:AddToggle("AutoFarmToggle2", {
     end
 })
 
--- Mining loop connected to RenderStepped for fast execution
+-- Main Mining Loop
 RunService.RenderStepped:Connect(function()
     if isAutoFarm and rootPart then
         local verticalRange = 30
         local toleranceRadius = 4
-        local ore = getClosestOreBelow(verticalRange, toleranceRadius)
-        if ore then
-            ReplicatedStorage.Events.MineOre:FireServer(ore)
+
+        -- First mine ore directly below
+        local oreBelow = getClosestOreBelow(verticalRange, toleranceRadius)
+        if oreBelow then
+            ReplicatedStorage.Events.MineOre:FireServer(oreBelow)
+        end
+
+        -- Then mine any ore we're stuck inside or slightly above
+        local blockingOre = getNearbyBlockingOre()
+        if blockingOre then
+            ReplicatedStorage.Events.MineOre:FireServer(blockingOre)
         end
     end
 end)
