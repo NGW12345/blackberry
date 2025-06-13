@@ -467,128 +467,121 @@ local Toggle = Tabs.Teleports:AddToggle("ServerHopToggle",
     end
 })
 
-invisRunning = false
-addcmd('invisible',{'invis'},function(args, speaker)
-	if invisRunning then return end
-	invisRunning = true
-	-- Full credit to AmokahFox @V3rmillion
-	local Player = speaker
-	repeat wait(.1) until Player.Character
-	local Character = Player.Character
-	Character.Archivable = true
-	local IsInvis = false
-	local IsRunning = true
-	local InvisibleCharacter = Character:Clone()
-	InvisibleCharacter.Parent = Lighting
-	local Void = workspace.FallenPartsDestroyHeight
-	InvisibleCharacter.Name = ""
-	local CF
+local RunService = game:GetService("RunService")
+local Lighting = game:GetService("Lighting")
+local Player = game.Players.LocalPlayer
 
-	local invisFix = RunService.Stepped:Connect(function()
-		pcall(function()
-			local IsInteger
-			if tostring(Void):find'-' then
-				IsInteger = true
-			else
-				IsInteger = false
-			end
-			local Pos = Player.Character.HumanoidRootPart.Position
-			local Pos_String = tostring(Pos)
-			local Pos_Seperate = Pos_String:split(', ')
-			local X = tonumber(Pos_Seperate[1])
-			local Y = tonumber(Pos_Seperate[2])
-			local Z = tonumber(Pos_Seperate[3])
-			if IsInteger == true then
-				if Y <= Void then
-					Respawn()
-				end
-			elseif IsInteger == false then
-				if Y >= Void then
-					Respawn()
-				end
-			end
-		end)
-	end)
+local InvisData = {
+    IsInvis = false,
+    InvisRunning = false,
+    OriginalCharacter = nil,
+    InvisibleCharacter = nil,
+    InvisFixConn = nil,
+    DiedConn = nil
+}
 
-	for i,v in pairs(InvisibleCharacter:GetDescendants())do
-		if v:IsA("BasePart") then
-			if v.Name == "HumanoidRootPart" then
-				v.Transparency = 1
-			else
-				v.Transparency = .5
-			end
-		end
-	end
+local function TurnVisible()
+    if not InvisData.IsInvis then return end
+    InvisData.InvisFixConn:Disconnect()
+    InvisData.DiedConn:Disconnect()
 
-	function Respawn()
-		IsRunning = false
-		if IsInvis == true then
-			pcall(function()
-				Player.Character = Character
-				wait()
-				Character.Parent = workspace
-				Character:FindFirstChildWhichIsA'Humanoid':Destroy()
-				IsInvis = false
-				InvisibleCharacter.Parent = nil
-				invisRunning = false
-			end)
-		elseif IsInvis == false then
-			pcall(function()
-				Player.Character = Character
-				wait()
-				Character.Parent = workspace
-				Character:FindFirstChildWhichIsA'Humanoid':Destroy()
-				TurnVisible()
-			end)
-		end
-	end
+    local camCF = workspace.CurrentCamera.CFrame
+    local humRP = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
+    if humRP and InvisData.OriginalCharacter and InvisData.OriginalCharacter:FindFirstChild("HumanoidRootPart") then
+        InvisData.OriginalCharacter.HumanoidRootPart.CFrame = humRP.CFrame
+    end
 
-	local invisDied
-	invisDied = InvisibleCharacter:FindFirstChildOfClass'Humanoid'.Died:Connect(function()
-		Respawn()
-		invisDied:Disconnect()
-	end)
+    InvisData.InvisibleCharacter:Destroy()
+    Player.Character = InvisData.OriginalCharacter
+    InvisData.OriginalCharacter.Parent = workspace
+    InvisData.IsInvis = false
 
-	if IsInvis == true then return end
-	IsInvis = true
-	CF = workspace.CurrentCamera.CFrame
-	local CF_1 = Player.Character.HumanoidRootPart.CFrame
-	Character:MoveTo(Vector3.new(0,math.pi*1000000,0))
-	workspace.CurrentCamera.CameraType = Enum.CameraType.Scriptable
-	wait(.2)
-	workspace.CurrentCamera.CameraType = Enum.CameraType.Custom
-	InvisibleCharacter = InvisibleCharacter
-	Character.Parent = Lighting
-	InvisibleCharacter.Parent = workspace
-	InvisibleCharacter.HumanoidRootPart.CFrame = CF_1
-	Player.Character = InvisibleCharacter
-	execCmd('fixcam')
-	Player.Character.Animate.Disabled = true
-	Player.Character.Animate.Disabled = false
+    local animate = Player.Character:FindFirstChild("Animate")
+    if animate then
+        animate.Disabled = true
+        animate.Disabled = false
+    end
 
-	function TurnVisible()
-		if IsInvis == false then return end
-		invisFix:Disconnect()
-		invisDied:Disconnect()
-		CF = workspace.CurrentCamera.CFrame
-		Character = Character
-		local CF_1 = Player.Character.HumanoidRootPart.CFrame
-		Character.HumanoidRootPart.CFrame = CF_1
-		InvisibleCharacter:Destroy()
-		Player.Character = Character
-		Character.Parent = workspace
-		IsInvis = false
-		Player.Character.Animate.Disabled = true
-		Player.Character.Animate.Disabled = false
-		invisDied = Character:FindFirstChildOfClass'Humanoid'.Died:Connect(function()
-			Respawn()
-			invisDied:Disconnect()
-		end)
-		invisRunning = false
-	end
-	notify('Invisible','You now appear invisible to other players')
-end)
+    InvisData.DiedConn = Player.Character:FindFirstChildOfClass("Humanoid").Died:Connect(function()
+        Player:LoadCharacter()
+    end)
 
+    InvisData.InvisRunning = false
+end
+
+local function TurnInvisible()
+    if InvisData.InvisRunning then return end
+    InvisData.InvisRunning = true
+
+    repeat task.wait() until Player.Character
+    local char = Player.Character
+    char.Archivable = true
+    local clone = char:Clone()
+    clone.Parent = Lighting
+    clone.Name = ""
+
+    InvisData.OriginalCharacter = char
+    InvisData.InvisibleCharacter = clone
+
+    for _, v in ipairs(clone:GetDescendants()) do
+        if v:IsA("BasePart") then
+            v.Transparency = v.Name == "HumanoidRootPart" and 1 or 0.5
+        end
+    end
+
+    local voidY = workspace.FallenPartsDestroyHeight
+    InvisData.InvisFixConn = RunService.Stepped:Connect(function()
+        local y = Player.Character:FindFirstChild("HumanoidRootPart") and Player.Character.HumanoidRootPart.Position.Y
+        if y then
+            if voidY < 0 and y <= voidY then
+                TurnVisible()
+            elseif voidY >= 0 and y >= voidY then
+                TurnVisible()
+            end
+        end
+    end)
+
+    InvisData.DiedConn = clone:FindFirstChildOfClass("Humanoid").Died:Connect(function()
+        TurnVisible()
+    end)
+
+    char:MoveTo(Vector3.new(0, math.pi * 1000000, 0))
+    workspace.CurrentCamera.CameraType = Enum.CameraType.Scriptable
+    task.wait(0.2)
+    workspace.CurrentCamera.CameraType = Enum.CameraType.Custom
+
+    local rootCFrame = char:FindFirstChild("HumanoidRootPart") and char.HumanoidRootPart.CFrame
+    char.Parent = Lighting
+    clone.Parent = workspace
+    if rootCFrame and clone:FindFirstChild("HumanoidRootPart") then
+        clone.HumanoidRootPart.CFrame = rootCFrame
+    end
+
+    Player.Character = clone
+    local animate = clone:FindFirstChild("Animate")
+    if animate then
+        animate.Disabled = true
+        animate.Disabled = false
+    end
+
+    InvisData.IsInvis = true
+    warn("You are now invisible to other players.")
+end
+
+-- 👇 Your style toggle
+local Toggle = Tabs.Teleports:AddToggle("MyToggle", 
+{
+    Title = "Invisible to Others", 
+    Description = "Makes your character invisible to everyone",
+    Default = false,
+    Callback = function(state)
+        if state then
+            TurnInvisible()
+        else
+            TurnVisible()
+        end
+    end 
+})
 
 
 local Section = Tabs.Teleports:AddSection("Runes")
