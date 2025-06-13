@@ -504,7 +504,7 @@ local GhostModeConnection
 local Toggle = Tabs.Teleports:AddToggle("GhostModeToggle", 
 {
     Title = "Ghost Mode", 
-    Description = "Makes your body invisible without dying. Keeps core parts.",
+    Description = "Makes your body Invisible without dying. Keeps core parts.",
     Default = false,
     Callback = function(state)
         local Players = game:GetService("Players")
