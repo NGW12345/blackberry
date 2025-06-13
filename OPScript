@@ -499,6 +499,50 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/NGW12345/blackberry/m
 
 
 
+local Toggle = Tabs.Teleports:AddToggle("GhostModeToggle", 
+{
+    Title = "Ghost Mode", 
+    Description = "Removes your character’s body except for the Humanoid and Head.",
+    Default = false,
+    Callback = function(state)
+        if state then
+            local Players = game:GetService("Players")
+            local lp = Players.LocalPlayer
+
+            local function stripCharacter()
+                local char = lp.Character or lp.CharacterAdded:Wait()
+                for _, part in ipairs(char:GetChildren()) do
+                    if not (part:IsA("Humanoid") or part.Name == "Head") then
+                        pcall(function()
+                            part:Destroy()
+                        end)
+                    end
+                end
+
+                -- Optional: Obfuscate name
+                local humanoid = char:FindFirstChildOfClass("Humanoid")
+                if humanoid then
+                    humanoid.DisplayName = "???"
+                end
+            end
+
+            -- Strip current character
+            stripCharacter()
+
+            -- Keep applying on respawn while toggle is on
+            GhostModeConnection = lp.CharacterAdded:Connect(function()
+                wait(1)
+                stripCharacter()
+            end)
+
+        else
+            if GhostModeConnection then
+                GhostModeConnection:Disconnect()
+                GhostModeConnection = nil
+            end
+        end
+    end 
+})
 
 
 
