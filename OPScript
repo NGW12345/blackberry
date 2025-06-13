@@ -389,7 +389,7 @@ local Toggle = Tabs.Teleports:AddToggle("ServerHopToggle",
     Callback = function(state)
         if state then
             task.spawn(function()
-                wait(20) -- Initial delay
+                wait(10) -- Initial delay
 
                 local req = syn and syn.request or http_request or request
                 if not req then
@@ -440,32 +440,53 @@ local Toggle = Tabs.Teleports:AddToggle("ServerHopToggle",
                     return validServers
                 end
 
-                local function tryFindCrowdedServer(attempts, pagesPerAttempt, delayBetween)
-                    for attempt = 1, attempts do
-                        local servers = fetchServers(pagesPerAttempt)
+                local function tryFindCrowdedServer()
+                    for attempt = 1, 30 do
+                        local servers = fetchServers(5)
                         if #servers > 0 then
                             table.sort(servers, function(a, b)
                                 return a.playing > b.playing
                             end)
-
-                            local pick = math.random(1, math.min(5, #servers)) -- top 5 most full
-                            return servers[pick].id
+                            return servers
                         end
-                        wait(delayBetween)
+                        wait(2)
                     end
                     return nil
                 end
 
-                local targetServer = tryFindCrowdedServer(30, 5, 4)
-                if targetServer then
-                    TeleportService:TeleportToPlaceInstance(game.PlaceId, targetServer, Players.LocalPlayer)
-                else
-                    warn("No crowded servers with open slots found.")
+                local function tryTeleportLoop()
+                    local servers = tryFindCrowdedServer()
+                    if not servers then
+                        warn("No crowded servers found after retries.")
+                        return
+                    end
+
+                    for _, server in ipairs(servers) do
+                        local success, err = pcall(function()
+                            TeleportService:TeleportToPlaceInstance(game.PlaceId, server.id, Players.LocalPlayer)
+                        end)
+
+                        if success then
+                            print("Teleport succeeded to server:", server.id)
+                            return
+                        else
+                            warn("Teleport failed:", err)
+                            wait(1)
+                        end
+                    end
+
+                    -- Retry the whole process if all servers failed
+                    warn("All teleport attempts failed, retrying...")
+                    wait(5)
+                    tryTeleportLoop()
                 end
+
+                tryTeleportLoop()
             end)
         end
     end
 })
+
 
 local Section = Tabs.Teleports:AddSection("Runes")
 
