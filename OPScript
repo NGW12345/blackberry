@@ -591,3 +591,10 @@ Tabs.Teleports:AddToggle("TeleportFromSpawnToggle", {
 
 
 SaveManager:LoadAutoloadConfig()
+
+
+
+
+-- Make server hop toggle keep trying even after it has found a server\
+
+-- I <3 you more -SP
