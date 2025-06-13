@@ -498,64 +498,6 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/NGW12345/blackberry/m
 
 
 
-local GhostModeConnection
-
-local Toggle = Tabs.Teleports:AddToggle("GhostModeToggle", 
-{
-    Title = "Ghost Mode", 
-    Description = "Fades your character's body to be invisible while staying alive.",
-    Default = false,
-    Callback = function(state)
-        local Players = game:GetService("Players")
-        local lp = Players.LocalPlayer
-
-        local function fadeCharacter()
-            local char = lp.Character or lp.CharacterAdded:Wait()
-
-            -- Make non-core parts invisible
-            for _, part in ipairs(char:GetDescendants()) do
-                if part:IsA("BasePart") then
-                    part.Transparency = 1
-                    if part:FindFirstChildOfClass("Decal") then
-                        for _, d in ipairs(part:GetChildren()) do
-                            if d:IsA("Decal") then
-                                d.Transparency = 1
-                            end
-                        end
-                    end
-                end
-            end
-
-            -- Remove accessories and clothing
-            for _, obj in ipairs(char:GetChildren()) do
-                if obj:IsA("Accessory") or obj:IsA("Clothing") or obj:IsA("Tool") then
-                    obj:Destroy()
-                end
-            end
-
-            -- Optional: Obfuscate name
-            local humanoid = char:FindFirstChildOfClass("Humanoid")
-            if humanoid then
-                humanoid.DisplayName = "???"
-            end
-        end
-
-        if state then
-            if GhostModeConnection then GhostModeConnection:Disconnect() end
-
-            fadeCharacter()
-            GhostModeConnection = lp.CharacterAdded:Connect(function()
-                task.wait(1)
-                fadeCharacter()
-            end)
-        else
-            if GhostModeConnection then
-                GhostModeConnection:Disconnect()
-                GhostModeConnection = nil
-            end
-        end
-    end 
-})
 
 
 
