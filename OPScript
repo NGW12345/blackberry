@@ -776,6 +776,784 @@ local dangerPosition = Vector3.new(-133.375656, 24.663414, 105.001854)
 local teleportRadius = 15
 local isAutoLayerTeleportEnabled = false
 
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+
+local CurrentVersion = "Infinite Mining Incremental v1"
+
+local Window = Fluent:CreateWindow({
+    Title = CurrentVersion,
+    SubTitle = "by ngw12345",
+    TabWidth = 160,
+    Size = UDim2.fromOffset(580, 460),
+    Acrylic = true, -- The blur may be detectable, setting this to false disables blur entirely
+    Theme = "Darker",
+    MinimizeKey = Enum.KeyCode.LeftControl -- Used when theres no MinimizeKeybind
+})
+
+-- Local Var List
+local rootPart = game.Workspace.ngw12345.HumanoidRootPart
+
+-- Fluent provides Lucide Icons, they are optional
+local Tabs = {
+    Teleports = Window:AddTab({ Title = "Teleports", Icon = "rocket" }),
+    AutoFarm = Window:AddTab({ Title = "Automation", Icon = "crown" }),
+    Settings = Window:AddTab({ Title = "Settings", Icon = "settings" })
+}
+
+local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
+local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
+
+SaveManager:SetLibrary(Fluent)
+InterfaceManager:SetLibrary(Fluent)
+
+InterfaceManager:BuildInterfaceSection(Tabs.Settings)
+SaveManager:BuildConfigSection(Tabs.Settings)
+
+Window:SelectTab(1)
+
+--[[
+
+local Section = Tabs.AutoFarm:AddSection("Auto Mining")
+
+local isAutoFarm = false
+
+-- Utility: Find the closest ore roughly straight below the player within verticalRange
+local function getClosestOreBelow(verticalRange, toleranceRadius)
+    local rootPos = rootPart.Position
+    local closestOre = nil
+    local closestDistance = math.huge
+
+    for _, ore in pairs(workspace.Ores:GetChildren()) do
+        if ore:IsA("Part") then
+            local orePos = ore.Position
+            local verticalDistance = rootPos.Y - orePos.Y
+            if verticalDistance > 0 and verticalDistance <= verticalRange then
+                -- Check horizontal distance from rootPart.XZ to ore.XZ
+                local horizontalDist = (Vector3.new(rootPos.X, 0, rootPos.Z) - Vector3.new(orePos.X, 0, orePos.Z)).Magnitude
+
+                -- Only consider ores roughly straight below within a small horizontal radius (toleranceRadius)
+                if horizontalDist <= toleranceRadius and verticalDistance < closestDistance then
+                    closestDistance = verticalDistance
+                    closestOre = ore
+                end
+            end
+        end
+    end
+
+    return closestOre
+end
+
+-- Add Toggle to Tabs.AutoFarm
+local FarmToggle = Tabs.AutoFarm:AddToggle("AutoFarmToggle", {
+    Title = "AutoFarm (Straight Down)",
+    Description = "Automatically mines ores straight down below you",
+    Default = false,
+    Callback = function(state)
+        isAutoFarm = state
+        print(isAutoFarm and "AutoFarm Enabled" or "AutoFarm Disabled")
+    end
+})
+
+-- Background mining loop
+task.spawn(function()
+    while true do
+        if isAutoFarm then
+            local verticalRange = 30     -- How far down to check
+            local toleranceRadius = 4    -- How close horizontally it must be to count as 'straight down'
+
+            local ore = getClosestOreBelow(verticalRange, toleranceRadius)
+            if ore then
+                local args = { ore }
+                game:GetService("ReplicatedStorage").Events.MineOre:FireServer(unpack(args))
+                task.wait(0.05) -- slight delay between mining
+            else
+                task.wait(0.1) -- no ore found, wait a bit longer
+            end
+        else
+            task.wait(0.15)
+        end
+    end
+end)
+
+]]--
+
+local RunService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local isAutoFarm = false
+local rootPart = game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+
+-- Utility: Find closest ore roughly straight below player within verticalRange
+local function getClosestOreBelow(verticalRange, toleranceRadius)
+    local rootPos = rootPart.Position
+    local closestOre = nil
+    local closestDistance = math.huge
+
+    for _, ore in pairs(workspace.Ores:GetChildren()) do
+        if ore:IsA("Part") then
+            local orePos = ore.Position
+            local verticalDistance = rootPos.Y - orePos.Y
+            if verticalDistance > 0 and verticalDistance <= verticalRange then
+                local horizontalDist = (Vector3.new(rootPos.X, 0, rootPos.Z) - Vector3.new(orePos.X, 0, orePos.Z)).Magnitude
+                if horizontalDist <= toleranceRadius and verticalDistance < closestDistance then
+                    closestDistance = verticalDistance
+                    closestOre = ore
+                end
+            end
+        end
+    end
+
+    return closestOre
+end
+
+-- Toggle Setup
+local FarmToggle = Tabs.AutoFarm:AddToggle("AutoFarmToggle2", {
+    Title = "AutoFarm2 (Straight Down)",
+    Description = "Automatically mines ores straight down below you",
+    Default = false,
+    Callback = function(state)
+        isAutoFarm = state
+        print(isAutoFarm and "AutoFarm Enabled" or "AutoFarm Disabled")
+    end
+})
+
+-- Mining loop connected to RenderStepped for fast execution
+RunService.RenderStepped:Connect(function()
+    if isAutoFarm and rootPart then
+        local verticalRange = 30
+        local toleranceRadius = 4
+        local ore = getClosestOreBelow(verticalRange, toleranceRadius)
+        if ore then
+            ReplicatedStorage.Events.MineOre:FireServer(ore)
+        end
+    end
+end)
+
+
+
+local selectedOre = 1
+local isAutoMining = false
+local miningThread = nil
+
+-- Dropdown for ore selection
+local Dropdown = Tabs.AutoFarm:AddDropdown("OreDropdown", {
+    Title = "Select Ore",
+    Description = "Choose the ore to mine",
+    Values = {"Chest", "10", "101101", "11", "12", "14", "Abyssal Stone", "Alagamite", "Alternatus", "Ambrosia", "Ammolite", "Aqueduelis Blue", "Aqueduelis Red", "Augelite", "Blue", "Chronoverde", "Coal", "Constellatium", "Copper", "Core", "Cordierite", "Crimsonstone", "Crookesite", "Celsian", "Datolite", "Darkmatter", "Darkstone", "Decayium", "Devilline", "Diamond", "Dragonglass", "Duskium", "Eclipse", "Ekanite", "Evorium", "Firecrystal", "Fracturium", "Galactium", "Galactic Shard", "Garnet", "Glitchite", "Glitchite Reborn", "Green", "Indicolite", "Indigo", "Inferno", "Iron", "Jasper", "Lightning Crystal", "Lithium", "Lucentium", "Lunalyx", "Malachite", "Marble", "Masslock", "Mineralite", "Mintite", "Miroite", "Morganite", "Nautilus", "Nautilus Evolved", "Niedermayrite", "Obamite", "Orange", "Platinum", "Plutonium", "Radiant Quartz", "Rainbonite", "Rainbonium", "Realgar", "REDACTED", "Red", "Redlinite", "Redrum", "Rozenite", "Royalty", "Ruby", "Serenity", "Shadowite", "Solar Blossom", "Spongebob", "Stone", "Stellarite", "Superium", "Taaffeite", "Timeite", "Voltiblue", "Violet", "Void Crystals", "Wadsleyite", "Warped Coal", "Yellow", "Yumium"},
+    Multi = false,
+    Default = 1,
+    Callback = function(value)
+        selectedOre = value
+    end
+})
+
+-- Toggle for AutoFarm
+local Toggle = Tabs.AutoFarm:AddToggle("SelectedOreAutoFarmToggle", 
+{
+    Title = "Selected Ore AutoFarm", 
+    Description = "Teleports to each ore and mines it",
+    Default = false,
+    Keybind = nil,
+    Callback = function(state)
+        isAutoMining = state
+
+        -- Stop old thread if it exists
+        if miningThread then
+            miningThread = nil
+        end
+
+        -- Start new thread
+        if state then
+            miningThread = task.spawn(function()
+                while isAutoMining do
+                    if selectedOre then
+                        local oresFolder = game.Workspace:FindFirstChild("Ores")
+                        if oresFolder then
+                            -- Gather and shuffle matching ores
+                            local matchingOres = {}
+                            for _, ore in pairs(oresFolder:GetChildren()) do
+                                if ore.Name == selectedOre and ore:IsA("BasePart") then
+                                    table.insert(matchingOres, ore)
+                                end
+                            end
+                            for i = #matchingOres, 2, -1 do
+                                local j = math.random(1, i)
+                                matchingOres[i], matchingOres[j] = matchingOres[j], matchingOres[i]
+                            end
+
+                            -- Loop through shuffled ores
+                            for _, ore in ipairs(matchingOres) do
+                                if not isAutoMining then break end
+                                if ore and ore.Parent then
+                                    -- Teleport above the ore
+                                    rootPart.CFrame = ore.CFrame + Vector3.new(0, 5, 0)
+                                    task.wait(0.2)
+
+                                    -- Fire the mining remote
+                                    game:GetService("ReplicatedStorage").Events.MineOre:FireServer(ore)
+
+                                    -- Wait until the ore is removed
+                                    local startTime = tick()
+                                    while ore.Parent and (tick() - startTime < 3) do
+                                        task.wait(0.1)
+                                    end
+
+                                    task.wait(0.2) -- small buffer
+                                end
+                            end
+                        end
+                    end
+                    task.wait(1) -- delay before scanning again
+                end
+            end)
+        end
+    end
+})
+
+local rareOres = {
+    "Eclipse", "Evorium", "Laventyx", "Royalty", "Shadowite", "Timeite", "101101", "Galactium", "Lunalyx", "Serenity",
+    "Nautilus Evolved", "Indicolite", "Yumium", "Superium", "Obamite", "Core", "Glitchite", "Alternatus", "Inferno", "REDACTED",
+    "Galactic Shard", "Radiant Quartz", "Blue", "Indigo", "Violet", "Green", "Yellow", "Orange", "Red",
+    "Duskium", "Solar Blossom", "Chronoverde", "Mintite", "Voltiblue", "Nautilus", "Lucentium", "Aqueduelis Red",
+    "Aqueduelis Blue", "Glitchite Reborn"
+}
+
+local isRareAutoFarming = false
+
+local Toggle = Tabs.AutoFarm:AddToggle("RareOreFinderToggle", 
+{
+    Title = "Rare Ore Finder", 
+    Description = "Teleports and mines all rare ores",
+    Default = false,
+    Callback = function(state)
+        isRareAutoFarming = state
+
+        if isRareAutoFarming then
+            task.spawn(function()
+                while isRareAutoFarming do
+                    local shuffled = table.clone(rareOres)
+                    -- Shuffle the list so it doesn’t follow the same order every time
+                    for i = #shuffled, 2, -1 do
+                        local j = math.random(i)
+                        shuffled[i], shuffled[j] = shuffled[j], shuffled[i]
+                    end
+
+                    for _, oreName in ipairs(shuffled) do
+                        if not isRareAutoFarming then return end
+                        local ore = game.Workspace.Ores:FindFirstChild(oreName)
+                        if ore and ore:IsA("BasePart") then
+                            rootPart.CFrame = ore.CFrame + Vector3.new(0, 5, 0)
+
+                            -- Try mining it
+                            local args = { ore }
+                            game:GetService("ReplicatedStorage").Events.MineOre:FireServer(unpack(args))
+
+                            -- Wait for ore to be mined (removed)
+                            local timeout = 1
+                            while ore.Parent and timeout > 0 and isRareAutoFarming do
+                                task.wait(0.2)
+                                timeout -= 0.2
+                            end
+                        end
+
+                        task.wait(0.1) -- Small delay before moving to next ore
+                    end
+                end
+            end)
+        end
+    end 
+})
+
+local Section = Tabs.AutoFarm:AddSection("Auto Buy Postions")
+
+local Toggle = Tabs.AutoFarm:AddToggle("LuckyPotionToggle", 
+{
+    Title = "Lucky Potion", 
+    Description = nil,
+    Default = false,
+    Callback = function(state)
+        isAutoBuying = state
+        while isAutoBuying do
+            local args = {
+                [1] = "Lucky Potion"}
+                game:GetService("ReplicatedStorage").Events.ConsumeItem:FireServer(unpack(args))
+            wait()
+        end
+    end 
+})
+
+local Toggle = Tabs.AutoFarm:AddToggle("BulkPotionToggle", 
+{
+    Title = "Bulk Potion", 
+    Description = nil,
+    Default = false,
+    Callback = function(state)
+        isAutoBuying = state
+        while isAutoBuying do
+            local args = {
+                [1] = "Bulk Potion"}
+                game:GetService("ReplicatedStorage").Events.ConsumeItem:FireServer(unpack(args))
+            wait()
+        end
+    end 
+})
+
+local Toggle = Tabs.AutoFarm:AddToggle("SpeedyPotionToggle", 
+{
+    Title = "Speedy Potion", 
+    Description = nil,
+    Default = false,
+    Callback = function(state)
+        isAutoBuying = state
+        while isAutoBuying do
+            local args = {
+                [1] = "Speedy Potion"
+            }
+                game:GetService("ReplicatedStorage").Events.ConsumeItem:FireServer(unpack(args))
+            wait()
+        end
+    end 
+})
+
+local Toggle = Tabs.AutoFarm:AddToggle("StatsPotionToggle", 
+{
+    Title = "Stats Potion", 
+    Description = nil,
+    Default = false,
+    Callback = function(state)
+        isAutoBuying = state
+        while isAutoBuying do
+            local args = {
+                [1] = "Stats Potion"
+            }
+                game:GetService("ReplicatedStorage").Events.ConsumeItem:FireServer(unpack(args))
+            wait()
+        end
+    end 
+})
+
+local Section = Tabs.AutoFarm:AddSection("Miscellaneous Automation")
+Section:AddParagraph({
+    Title = "Auto Selling, Clicking and Farming"
+})
+
+local SellToggle = Tabs.AutoFarm:AddToggle("AutoSellToggle", {
+    Title = "Auto Sell", 
+    Description = "Sell Anywhere",
+    Default = false,
+    Callback = function(state)
+        isAutoSelling = state
+        while isAutoSelling do
+            local args = { [1] = "Sell" }
+            game:GetService("ReplicatedStorage").Events.ToServer:FireServer(unpack(args))
+            wait()
+        end
+    end
+})
+
+local Toggle = Tabs.AutoFarm:AddToggle("AutoClassToggle", 
+{
+    Title = "Auto Class", 
+    Description = "Auto rolls class anywhere on map",
+    Default = false,
+    Callback = function(state)
+        isAutoRolling = state
+        while isAutoRolling do
+            game:GetService("ReplicatedStorage").Events.GetClass:FireServer()
+            wait()
+        end
+    end 
+})
+
+local Toggle = Tabs.AutoFarm:AddToggle("SkullsAutoFarmToggle", 
+{
+    Title = "Skulls AutoFarm", 
+    Description = nil,
+    Default = false,
+    Callback = function(state)
+        isAutoFarmingSkulls = state
+        while isAutoFarmingSkulls do
+            rootPart.CFrame = CFrame.new(-104.840485, 25.329813, 270.978363, -0.984631658, 5.40260636e-08, -0.174644023, 6.55146692e-08, 1, -6.00178183e-08, 0.174644023, -7.05371832e-08, -0.984631658)
+            wait()
+            rootPart.CFrame = CFrame.new(-115.516541, 25.3297997, 270.953979, 0.99774003, 3.2130643e-08, -0.0671922565, -3.79638188e-08, 1, -8.55363353e-08, 0.0671922565, 8.78939019e-08, 0.99774003)
+            wait()
+            rootPart.CFrame = CFrame.new(-142.02388, 25.3298016, 270.675537, -0.298361897, 8.23026269e-08, -0.954452813, 1.02213477e-07, 1, 5.42782388e-08, 0.954452813, -8.13633818e-08, -0.298361897)
+            wait()
+        end
+    end    
+})
+
+local Toggle = Tabs.AutoFarm:AddToggle("InfernoAutoFarmToggle", 
+{
+    Title = "Inferno AutoFarm", 
+    Description = nil,
+    Default = false,
+    Callback = function(state)
+        isAutoFarmingInferno = state
+        while isAutoFarmingInferno do
+            rootPart.CFrame = CFrame.new(-104.840485, 25.329813, 270.978363, -0.984631658, 5.40260636e-08, -0.174644023, 6.55146692e-08, 1, -6.00178183e-08, 0.174644023, -7.05371832e-08, -0.984631658)
+            wait()
+            rootPart.CFrame = CFrame.new(-294.721344, 25.6376495, 236.600357, -0.101697266, 5.73547254e-09, 0.994815409, 1.58244102e-08, 1, -4.14767731e-09, -0.994815409, 1.5320559e-08, -0.101697266)
+            wait()
+        end
+    end    
+})
+
+local ClickingToggle = Tabs.AutoFarm:AddToggle("SubzeroAutoClickToggle", 
+{
+    Title = "Subzero AutoClick", 
+    Description = nil,
+    Default = false,
+    Callback = function(state)
+        autoClicking = state
+        while autoClicking do
+                game:GetService("ReplicatedStorage").Events.SubzeroClick:FireServer()
+                wait()
+        end
+    end
+})
+
+
+
+
+
+
+
+
+
+
+local Toggle = Tabs.Teleports:AddToggle("ServerHopToggle", 
+{
+    Title = "Server Hop", 
+    Description = "Waits 15 seconds, then hops servers and reopens script.",
+    Default = false,
+    Callback = function(state)
+        if state then
+            print("Server Hop Toggle On")
+            task.delay(15, function()
+
+                local PlaceID = game.PlaceId
+                local HttpService = game:GetService("HttpService")
+                local TeleportService = game:GetService("TeleportService")
+                local AllIDs = {}
+                local foundAnything = ""
+                local actualHour = os.date("!*t").hour
+                local isTeleporting = false
+
+                local function loadIDs()
+                    local success, data = pcall(function()
+                        return HttpService:JSONDecode(readfile("NotSameServers.json"))
+                    end)
+                    if success and type(data) == "table" then
+                        return data
+                    else
+                        return {actualHour}
+                    end
+                end
+
+                AllIDs = loadIDs()
+
+                function TPReturner()
+                    if isTeleporting then return end
+
+                    local Site
+                    if foundAnything == "" then
+                        Site = HttpService:JSONDecode(game:HttpGet('https://games.roblox.com/v1/games/' .. PlaceID .. '/servers/Public?sortOrder=Asc&limit=100'))
+                    else
+                        Site = HttpService:JSONDecode(game:HttpGet('https://games.roblox.com/v1/games/' .. PlaceID .. '/servers/Public?sortOrder=Asc&limit=100&cursor=' .. foundAnything))
+                    end
+
+                    if Site.nextPageCursor and Site.nextPageCursor ~= "null" then
+                        foundAnything = Site.nextPageCursor
+                    end
+
+                    local possibleServers = {}
+                    local hourChanged = tonumber(AllIDs[1]) ~= actualHour
+                    if hourChanged then
+                        AllIDs = {actualHour}
+                    end
+
+                    for _, v in pairs(Site.data) do
+                        local id = tostring(v.id)
+                        local playing = v.playing
+                        local maxPlayers = v.maxPlayers
+
+                        if playing < maxPlayers and playing >= math.floor(maxPlayers * 0.3) then
+                            local alreadySeen = false
+                            for i = 2, #AllIDs do
+                                if AllIDs[i] == id then
+                                    alreadySeen = true
+                                    break
+                                end
+                            end
+                            if not alreadySeen then
+                                table.insert(possibleServers, id)
+                            end
+                        end
+                    end
+
+                    if #possibleServers > 0 then
+                        local selectedID = possibleServers[math.random(1, #possibleServers)]
+                        table.insert(AllIDs, selectedID)
+
+                        -- Limit file size (remove old entries beyond 200)
+                        while #AllIDs > 200 do
+                            table.remove(AllIDs, 2) -- keep [1] as hour
+                        end
+
+                        writefile("NotSameServers.json", HttpService:JSONEncode(AllIDs))
+
+                        isTeleporting = true
+                        pcall(function()
+                            local queuedCode = [[ 
+loadstring(game:HttpGet("https://raw.githubusercontent.com/NGW12345/blackberry/main/OPScript"))()
+                            ]]
+                            queue_on_teleport(queuedCode)
+                            wait(1)
+                            TeleportService:TeleportToPlaceInstance(PlaceID, selectedID, game.Players.LocalPlayer)
+                        end)
+                    end
+                end
+
+                function Teleport()
+                    TPReturner()
+                    if foundAnything ~= "" then
+                        wait(math.random(1, 2))
+                        TPReturner()
+                    end
+                end
+
+                Teleport()
+
+            end)
+        else
+            print("Server Hop Toggle Off")
+        end
+    end 
+})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--[[
+local HttpService = game:GetService("HttpService")
+local TeleportService = game:GetService("TeleportService")
+local Players = game:GetService("Players")
+
+local Toggle = Tabs.Teleports:AddToggle("ServerHopToggle", 
+{
+    Title = "Crowded Server Hop", 
+    Description = "Waits 10s, then hops to a server that's nearly full but has open slots.",
+    Default = false,
+    Callback = function(state)
+        if state then
+            task.spawn(function()
+                wait(10) -- Initial delay
+
+                local req = syn and syn.request or http_request or request
+                if not req then
+                    warn("Your executor does not support HTTP requests.")
+                    return
+                end
+
+                local function fetchServers(pagesToScan)
+                    local placeId = game.PlaceId
+                    local currentJobId = game.JobId
+                    local cursor = ""
+                    local validServers = {}
+                    local pagesChecked = 0
+
+                    while pagesChecked < pagesToScan do
+                        local success, response = pcall(function()
+                            return req({
+                                Url = string.format("https://games.roblox.com/v1/games/%d/servers/Public?sortOrder=Asc&limit=100&cursor=%s", placeId, cursor),
+                                Method = "GET"
+                            })
+                        end)
+
+                        if not success or not response or not response.Body then break end
+
+                        local decoded = HttpService:JSONDecode(response.Body)
+                        if decoded and decoded.data then
+                            for _, server in pairs(decoded.data) do
+                                local isDifferent = server.id ~= currentJobId
+                                local hasRoom = server.playing < server.maxPlayers
+                                local isCrowded = (server.playing / server.maxPlayers) >= 0.85
+
+                                if isDifferent and hasRoom and isCrowded then
+                                    table.insert(validServers, server)
+                                end
+                            end
+                        end
+
+                        if decoded.nextPageCursor then
+                            cursor = decoded.nextPageCursor
+                        else
+                            break
+                        end
+
+                        pagesChecked += 1
+                        wait(0.2)
+                    end
+
+                    return validServers
+                end
+
+                local function tryFindCrowdedServer()
+                    for attempt = 1, 30 do
+                        local servers = fetchServers(5)
+                        if #servers > 0 then
+                            table.sort(servers, function(a, b)
+                                return a.playing > b.playing
+                            end)
+                            return servers
+                        end
+                        wait(2)
+                    end
+                    return nil
+                end
+
+                local function tryTeleportLoop()
+                    local servers = tryFindCrowdedServer()
+                    if not servers then
+                        warn("No crowded servers found after retries.")
+                        return
+                    end
+
+                    for _, server in ipairs(servers) do
+                        local success, err = pcall(function()
+                            TeleportService:TeleportToPlaceInstance(game.PlaceId, server.id, Players.LocalPlayer)
+                        end)
+
+                        if success then
+                            print("Teleport succeeded to server:", server.id)
+                            return
+                        else
+                            warn("Teleport failed:", err)
+                            wait(1)
+                        end
+                    end
+
+                    -- Retry the whole process if all servers failed
+                    warn("All teleport attempts failed, retrying...")
+                    wait(5)
+                    tryTeleportLoop()
+                end
+
+                tryTeleportLoop()
+            end)
+        end
+    end
+})
+]]--
+
+local Section = Tabs.Teleports:AddSection("Runes")
+
+-- Rune CFrame positions
+local runePositions = {
+    ["Starter Rune"] = CFrame.new(-177.169922, 25.5065327, 26.5225658),
+    ["Nuclear Rune"] = CFrame.new(-142.583725, 25.5065269, 26.9106922),
+    ["Cave Rune"] = CFrame.new(-112.922127, 25.5065308, 26.7023525),
+    ["Secret Rune"] = CFrame.new(250.94101, 7.82588863, 267.365295),
+    ["Life Rune"] = CFrame.new(-300.904053, 25.5685234, 206.193466),
+    ["Inferno Rune"] = CFrame.new(-245.880951, 25.5535641, 221.215271),
+    ["Crystal Rune"] = CFrame.new(-236.478226, 25.1691093, 139.702789),
+}
+
+-- Track selected rune name
+local selectedRune = "Starter Rune" -- Default value
+
+-- Dropdown with callback to update selectedRune
+Tabs.Teleports:AddDropdown("RuneDropdown", {
+    Title = "Select Rune",
+    Description = "Choose a rune to teleport to",
+    Values = { "Starter Rune", "Nuclear Rune", "Cave Rune", "Secret Rune", "Life Rune", "Inferno Rune", "Crystal Rune" },
+    Multi = false,
+    Default = 1,
+    Callback = function(value)
+        selectedRune = value
+    end
+})
+
+-- Button to teleport using the selected dropdown value
+Tabs.Teleports:AddButton({
+    Title = "Teleport to Selected Rune",
+    Description = "Teleports you to the selected rune",
+    Callback = function()
+        local destination = runePositions[selectedRune]
+        if destination and rootPart then
+            rootPart.CFrame = destination
+            print("Teleported to:", selectedRune)
+        else
+            warn("Invalid destination or rootPart not found")
+        end
+    end
+})
+
+local Section = Tabs.Teleports:AddSection("Mine")
+
+Tabs.Teleports:AddButton({
+    Title = "Teleport to the Top of Mine",
+    Description = nil,
+    Callback = function()
+        rootPart.CFrame = CFrame.new(96.0919952, 5.99999952, 102.514236, 0.158584878, -2.15407905e-08, 0.987345338, -9.94429095e-10, 1, 2.19765983e-08, -0.987345338, -4.46700144e-09, 0.158584878)
+    end
+})
+
+local dangerPosition = Vector3.new(-133.375656, 24.663414, 105.001854)
+local safeCFrame = CFrame.new(96.0919952, 5.99999952, 102.514236, 0.158584878, -2.15407905e-08, 0.987345338, -9.94429095e-10, 1, 2.19765983e-08, -0.987345338, -4.46700144e-09, 0.158584878)
+
+local isTeleportMonitorActive = false
+
+local Toggle = Tabs.Teleports:AddToggle("AntiTeleportToSpawnToggle", 
+{
+    Title = "Anti Teleport to Spawn", 
+    Description = "Teleports you back to mines if sent back to spawn",
+    Default = false,
+    Callback = function(state)
+        isTeleportMonitorActive = state
+
+        if isTeleportMonitorActive then
+            task.spawn(function()
+                while isTeleportMonitorActive do
+                    if (rootPart.Position - dangerPosition).Magnitude < 15 then
+                        rootPart.CFrame = safeCFrame
+                    end
+                    task.wait(0.2)
+                end
+            end)
+        end
+    end 
+})
+
+-- Dropdown for layer selection
+local selectedLayer = "Darkstone"
+Tabs.Teleports:AddDropdown("LayerDropdown", {
+    Title = "Select Layer",
+    Description = "Layer to teleport to when in spawn",
+    Values = {"Darkstone", "Crimson", "Marble"}, -- Replace with actual layer names
+    Multi = false,
+    Default = 1,
+    Callback = function(value)
+        selectedLayer = value
+    end
+})
+
+-- Variables already defined
+local dangerPosition = Vector3.new(-133.375656, 24.663414, 105.001854)
+local teleportRadius = 15
+local isAutoLayerTeleportEnabled = false
+
 -- Toggle to activate teleport from spawn
 Tabs.Teleports:AddToggle("TeleportFromSpawnToggle", {
     Title = "Auto Teleport to Layer From Spawn",
@@ -786,14 +1564,27 @@ Tabs.Teleports:AddToggle("TeleportFromSpawnToggle", {
 
         if isAutoLayerTeleportEnabled then
             task.spawn(function()
+                local dangerStartTime = nil
+
                 while isAutoLayerTeleportEnabled do
-                    if selectedLayer and (rootPart.Position - dangerPosition).Magnitude < teleportRadius then
-                        local args = {
-                            [1] = selectedLayer
-                        }
-                        game:GetService("ReplicatedStorage").Events.Teleport:FireServer(unpack(args))
-                        task.wait(1) -- Add buffer so it doesn’t fire multiple times rapidly
+                    local inDanger = (rootPart.Position - dangerPosition).Magnitude < teleportRadius
+
+                    if selectedLayer and inDanger then
+                        if not dangerStartTime then
+                            dangerStartTime = tick() -- Start timing when danger first detected
+                        elseif tick() - dangerStartTime >= 10 then
+                            -- Still in danger after 10s, teleport
+                            local args = {
+                                [1] = selectedLayer
+                            }
+                            game:GetService("ReplicatedStorage").Events.Teleport:FireServer(unpack(args))
+                            dangerStartTime = nil -- Reset timer after teleport
+                            task.wait(1) -- Prevent double-firing
+                        end
+                    else
+                        dangerStartTime = nil -- Reset timer if safe again
                     end
+
                     task.wait(0.3)
                 end
             end)
@@ -802,8 +1593,9 @@ Tabs.Teleports:AddToggle("TeleportFromSpawnToggle", {
 })
 
 
-SaveManager:LoadAutoloadConfig()
 
+
+SaveManager:LoadAutoloadConfig()
 
 
 
