@@ -131,7 +131,7 @@ end
 
 -- Add Toggle to Tabs.AutoFarm
 local FarmToggle = Tabs.AutoFarm:AddToggle("AutoFarmToggle2", {
-    Title = "AutoFarm2 (Straight Down)",
+    Title = "AutoFarm3 (Straight Down)",
     Description = "Automatically mines ores straight down below you",
     Default = false,
     Callback = function(state)
@@ -145,7 +145,7 @@ task.spawn(function()
     while true do
         if isAutoFarm then
             local verticalRange = 40     -- Increased range
-            local toleranceRadius = 6    -- Slightly wider mining cone
+            local toleranceRadius = 9    -- Slightly wider mining cone
 
             local ore = getClosestOreBelow(verticalRange, toleranceRadius)
             if ore then
