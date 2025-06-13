@@ -384,12 +384,12 @@ local Players = game:GetService("Players")
 local Toggle = Tabs.Teleports:AddToggle("ServerHopToggle", 
 {
     Title = "Crowded Server Hop", 
-    Description = "Waits 10s then hops to a random high-population server.",
+    Description = "Waits 10s, then hops to a server that's nearly full but has open slots.",
     Default = false,
     Callback = function(state)
         if state then
             task.spawn(function()
-                wait(20) -- ⏳ Wait before starting
+                wait(20) -- Initial delay
 
                 local req = syn and syn.request or http_request or request
                 if not req then
@@ -401,7 +401,7 @@ local Toggle = Tabs.Teleports:AddToggle("ServerHopToggle",
                     local placeId = game.PlaceId
                     local currentJobId = game.JobId
                     local cursor = ""
-                    local allServers = {}
+                    local validServers = {}
                     local pagesChecked = 0
 
                     while pagesChecked < pagesToScan do
@@ -417,8 +417,12 @@ local Toggle = Tabs.Teleports:AddToggle("ServerHopToggle",
                         local decoded = HttpService:JSONDecode(response.Body)
                         if decoded and decoded.data then
                             for _, server in pairs(decoded.data) do
-                                if server.id ~= currentJobId and server.playing < server.maxPlayers then
-                                    table.insert(allServers, server)
+                                local isDifferent = server.id ~= currentJobId
+                                local hasRoom = server.playing < server.maxPlayers
+                                local isCrowded = (server.playing / server.maxPlayers) >= 0.85
+
+                                if isDifferent and hasRoom and isCrowded then
+                                    table.insert(validServers, server)
                                 end
                             end
                         end
@@ -433,38 +437,36 @@ local Toggle = Tabs.Teleports:AddToggle("ServerHopToggle",
                         wait(0.2)
                     end
 
-                    return allServers
+                    return validServers
                 end
 
-                local function tryFindCrowdedServer(attempts, pagesPerAttempt, waitBetweenAttempts)
+                local function tryFindCrowdedServer(attempts, pagesPerAttempt, delayBetween)
                     for attempt = 1, attempts do
                         local servers = fetchServers(pagesPerAttempt)
-
                         if #servers > 0 then
                             table.sort(servers, function(a, b)
-                                return a.playing > b.playing -- Most populated first
+                                return a.playing > b.playing
                             end)
 
-                            local pickIndex = math.random(1, math.min(10, #servers))
-                            return servers[pickIndex].id
+                            local pick = math.random(1, math.min(5, #servers)) -- top 5 most full
+                            return servers[pick].id
                         end
-
-                        wait(waitBetweenAttempts)
+                        wait(delayBetween)
                     end
-
                     return nil
                 end
 
-                local chosenServer = tryFindCrowdedServer(10, 5, 5) -- ⏳ Try 10 times, scanning 5 pages, 2s wait between
-                if chosenServer then
-                    TeleportService:TeleportToPlaceInstance(game.PlaceId, chosenServer, Players.LocalPlayer)
+                local targetServer = tryFindCrowdedServer(10, 5, 4)
+                if targetServer then
+                    TeleportService:TeleportToPlaceInstance(game.PlaceId, targetServer, Players.LocalPlayer)
                 else
-                    warn("Failed to find a crowded server after multiple attempts.")
+                    warn("No crowded servers with open slots found.")
                 end
             end)
         end
     end
 })
+
 
 
 
