@@ -105,16 +105,15 @@ local rootPart = player.Character:WaitForChild("HumanoidRootPart")
 
 local isAutoCursorMine = false
 
--- Simulate mouse input
 local function holdMouseDown()
-    vim:SendMouseButtonEvent(0, 0, 0, true, game, 0) -- Mouse1 Down
+    vim:SendMouseButtonEvent(0, 0, 0, true, game, 0)
 end
 
 local function releaseMouse()
-    vim:SendMouseButtonEvent(0, 0, 0, false, game, 0) -- Mouse1 Up
+    vim:SendMouseButtonEvent(0, 0, 0, false, game, 0)
 end
 
--- Utility: Find closest ore straight below
+-- Find ore under player
 local function getClosestOreBelow(verticalRange, toleranceRadius)
     local rootPos = rootPart.Position
     local closestOre = nil
@@ -137,18 +136,15 @@ local function getClosestOreBelow(verticalRange, toleranceRadius)
     return closestOre
 end
 
--- Add toggle
-local AutoCursorToggle = Tabs.AutoFarm:AddToggle("CursorAutoMineToggle", {
-    Title = "AutoFarm (Auto-Aim Cursor)",
-    Description = "Auto-aligns cursor to ore and simulates holding left-click",
+-- Toggle
+local AutoCursorToggle = Tabs.AutoFarm:AddToggle("CursorAutoMineToggle2", {
+    Title = "AutoFarm (Camera Aim + Left-Click)",
+    Description = "Aims camera at ore and holds left-click to mine fast",
     Default = false,
     Callback = function(state)
         isAutoCursorMine = state
-        if state then
-            print("Auto-Aim Cursor Mining Enabled")
-        else
+        if not state then
             releaseMouse()
-            print("Auto-Aim Cursor Mining Disabled")
         end
     end
 })
@@ -157,14 +153,16 @@ local AutoCursorToggle = Tabs.AutoFarm:AddToggle("CursorAutoMineToggle", {
 task.spawn(function()
     while true do
         if isAutoCursorMine then
-            local ore = getClosestOreBelow(40, 4)
+            local ore = getClosestOreBelow(40, 6)
             if ore then
-                local screenPos, onScreen = camera:WorldToScreenPoint(ore.Position)
-                if onScreen then
-                    -- Move mouse to ore and simulate hold
-                    vim:SendMouseMoveEvent(screenPos.X, screenPos.Y, game, 0)
-                    holdMouseDown()
-                end
+                -- Move camera to look at ore
+                camera.CFrame = CFrame.new(camera.CFrame.Position, ore.Position)
+
+                -- Wait a moment for view to update
+                task.wait(0.05)
+
+                -- Hold left-click (mining will trigger if the game supports it via mouse position)
+                holdMouseDown()
             end
             task.wait(0.1)
         else
