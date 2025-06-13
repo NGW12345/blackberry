@@ -137,8 +137,8 @@ local function getClosestOreBelow(verticalRange, toleranceRadius)
 end
 
 -- Toggle
-local AutoCursorToggle = Tabs.AutoFarm:AddToggle("CursorAutoMineToggle2", {
-    Title = "AutoFarm (Camera Aim + Left-Click)",
+local AutoCursorToggle = Tabs.AutoFarm:AddToggle("CursorAutoMineToggle", {
+    Title = "AutoFarm2 (Camera Aim + Left-Click)",
     Description = "Aims camera at ore and holds left-click to mine fast",
     Default = false,
     Callback = function(state)
