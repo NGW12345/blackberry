@@ -499,42 +499,50 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/NGW12345/blackberry/m
 
 
 
+local GhostModeConnection
+
 local Toggle = Tabs.Teleports:AddToggle("GhostModeToggle", 
 {
     Title = "Ghost Mode", 
-    Description = "Removes your character’s body except for the Humanoid and Head.",
+    Description = "Makes your body invisible without dying. Keeps core parts.",
     Default = false,
     Callback = function(state)
-        if state then
-            local Players = game:GetService("Players")
-            local lp = Players.LocalPlayer
+        local Players = game:GetService("Players")
+        local lp = Players.LocalPlayer
 
-            local function stripCharacter()
-                local char = lp.Character or lp.CharacterAdded:Wait()
-                for _, part in ipairs(char:GetChildren()) do
-                    if not (part:IsA("Humanoid") or part.Name == "Head") then
-                        pcall(function()
-                            part:Destroy()
-                        end)
-                    end
-                end
-
-                -- Optional: Obfuscate name
-                local humanoid = char:FindFirstChildOfClass("Humanoid")
-                if humanoid then
-                    humanoid.DisplayName = "???"
+        local function stripCharacter()
+            local char = lp.Character or lp.CharacterAdded:Wait()
+            for _, part in ipairs(char:GetChildren()) do
+                -- Keep Humanoid, Head, HumanoidRootPart, Torso(s)
+                if not (
+                    part:IsA("Humanoid") or
+                    part.Name == "Head" or
+                    part.Name == "HumanoidRootPart" or
+                    part.Name == "Torso" or
+                    part.Name == "UpperTorso" or
+                    part.Name == "LowerTorso"
+                ) then
+                    pcall(function()
+                        part:Destroy()
+                    end)
                 end
             end
 
-            -- Strip current character
-            stripCharacter()
+            -- Obfuscate name
+            local humanoid = char:FindFirstChildOfClass("Humanoid")
+            if humanoid then
+                humanoid.DisplayName = "???"
+            end
+        end
 
-            -- Keep applying on respawn while toggle is on
+        if state then
+            if GhostModeConnection then GhostModeConnection:Disconnect() end
+
+            stripCharacter()
             GhostModeConnection = lp.CharacterAdded:Connect(function()
-                wait(1)
+                task.wait(1)
                 stripCharacter()
             end)
-
         else
             if GhostModeConnection then
                 GhostModeConnection:Disconnect()
@@ -543,6 +551,7 @@ local Toggle = Tabs.Teleports:AddToggle("GhostModeToggle",
         end
     end 
 })
+
 
 
 
