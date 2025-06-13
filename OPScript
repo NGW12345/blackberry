@@ -786,26 +786,20 @@ Tabs.Teleports:AddToggle("TeleportFromSpawnToggle", {
 
         if isAutoLayerTeleportEnabled then
             task.spawn(function()
-                local dangerStartTime = nil
-
                 while isAutoLayerTeleportEnabled do
-                    local inDanger = (rootPart.Position - dangerPosition).Magnitude < teleportRadius
-
-                    if selectedLayer and inDanger then
-                        if not dangerStartTime then
-                            dangerStartTime = tick() -- Start timing when danger first detected
-                        elseif tick() - dangerStartTime >= 10 then
-                            -- Still in danger after 10s, teleport
-                            local args = {
-                                [1] = selectedLayer
-                            }
-                            game:GetService("ReplicatedStorage").Events.Teleport:FireServer(unpack(args))
-                            dangerStartTime = nil -- Reset timer after teleport
-                            task.wait(1) -- Prevent double-firing
-                        end
-                    else
-                        dangerStartTime = nil -- Reset timer if safe again
-
+                    if selectedLayer and (rootPart.Position - dangerPosition).Magnitude < teleportRadius then
+                        local args = {
+                            [1] = selectedLayer
+                        }
+                        game:GetService("ReplicatedStorage").Events.Teleport:FireServer(unpack(args))
+                        task.wait(1) -- Add buffer so it doesn’t fire multiple times rapidly
+                    end
+                    task.wait(0.3)
+                end
+            end)
+        end
+    end
+})
 
 
 SaveManager:LoadAutoloadConfig()
