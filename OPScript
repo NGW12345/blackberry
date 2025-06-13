@@ -442,7 +442,7 @@ local Toggle = Tabs.Teleports:AddToggle("ServerHopToggle",
                         local playing = v.playing
                         local maxPlayers = v.maxPlayers
 
-                        if playing < maxPlayers and playing >= math.floor(maxPlayers * 0.7) then
+                        if playing < maxPlayers and playing >= math.floor(maxPlayers * 0.3) then
                             local alreadySeen = false
                             for i = 2, #AllIDs do
                                 if AllIDs[i] == id then
