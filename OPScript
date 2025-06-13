@@ -421,22 +421,24 @@ local Toggle = Tabs.Teleports:AddToggle("ServerHopToggle",
                         Site = game.HttpService:JSONDecode(game:HttpGet('https://games.roblox.com/v1/games/' .. PlaceID .. '/servers/Public?sortOrder=Asc&limit=100&cursor=' .. foundAnything))
                     end
 
-                    local ID = ""
                     if Site.nextPageCursor and Site.nextPageCursor ~= "null" and Site.nextPageCursor ~= nil then
                         foundAnything = Site.nextPageCursor
                     end
 
+                    local possibleServers = {}
                     local num = 0
+
                     for i,v in pairs(Site.data) do
-                        local Possible = true
-                        ID = tostring(v.id)
+                        local ID = tostring(v.id)
                         local playing = tonumber(v.playing)
                         local maxPlayers = tonumber(v.maxPlayers)
+
                         if playing < maxPlayers and playing >= math.floor(maxPlayers * 0.7) then
-                            for _,Existing in pairs(AllIDs) do
+                            local alreadySeen = false
+                            for _, Existing in pairs(AllIDs) do
                                 if num ~= 0 then
                                     if ID == tostring(Existing) then
-                                        Possible = false
+                                        alreadySeen = true
                                     end
                                 else
                                     if tonumber(actualHour) ~= tonumber(Existing) then
@@ -449,20 +451,26 @@ local Toggle = Tabs.Teleports:AddToggle("ServerHopToggle",
                                 end
                                 num = num + 1
                             end
-                            if Possible == true then
-                                table.insert(AllIDs, ID)
-                                pcall(function()
-                                    local queuedCode = [[ 
-loadstring(game:HttpGet("https://raw.githubusercontent.com/NGW12345/blackberry/main/OPScript"))()
-                                    ]]
-                                    queue_on_teleport(queuedCode)
-                                    writefile("NotSameServers.json", game:GetService('HttpService'):JSONEncode(AllIDs))
-                                    wait()
-                                    game:GetService("TeleportService"):TeleportToPlaceInstance(PlaceID, ID, game.Players.LocalPlayer)
-                                end)
-                                wait(4)
+                            if not alreadySeen then
+                                table.insert(possibleServers, ID)
                             end
                         end
+                    end
+
+                    if #possibleServers > 0 then
+                        local selectedID = possibleServers[math.random(1, #possibleServers)]
+                        table.insert(AllIDs, selectedID)
+
+                        pcall(function()
+                            local queuedCode = [[ 
+loadstring(game:HttpGet("https://raw.githubusercontent.com/NGW12345/blackberry/main/OPScript"))()
+                            ]]
+                            queue_on_teleport(queuedCode)
+                            writefile("NotSameServers.json", game:GetService('HttpService'):JSONEncode(AllIDs))
+                            wait()
+                            game:GetService("TeleportService"):TeleportToPlaceInstance(PlaceID, selectedID, game.Players.LocalPlayer)
+                        end)
+                        wait(4)
                     end
                 end
 
@@ -485,6 +493,9 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/NGW12345/blackberry/m
         end
     end 
 })
+
+
+
 
 
 
