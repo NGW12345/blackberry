@@ -131,7 +131,7 @@ end
 
 -- Add Toggle to Tabs.AutoFarm
 local FarmToggle = Tabs.AutoFarm:AddToggle("AutoFarmToggle2", {
-    Title = "AutoFarm (Straight Down)",
+    Title = "AutoFarm2 (Straight Down)",
     Description = "Automatically mines ores straight down below you",
     Default = false,
     Callback = function(state)
@@ -150,15 +150,15 @@ task.spawn(function()
             local ore = getClosestOreBelow(verticalRange, toleranceRadius)
             if ore then
                 -- Burst mine: fire multiple hits per ore
-                for _ = 1, 3 do
+                for _ = 1, 9 do
                     game:GetService("ReplicatedStorage").Events.MineOre:FireServer(ore)
                 end
-                task.wait(0.03) -- Faster mining delay
+                task.wait(0.015) -- Faster mining delay
             else
-                task.wait(0.1) -- No ore found, wait a bit longer
+                task.wait(0.03) -- No ore found, wait a bit longer
             end
         else
-            task.wait(0.15)
+            task.wait(0.03)
         end
     end
 end)
