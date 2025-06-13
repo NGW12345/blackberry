@@ -213,7 +213,7 @@ local Toggle = Tabs.AutoFarm:AddToggle("RareOreFinderToggle",
                             game:GetService("ReplicatedStorage").Events.MineOre:FireServer(unpack(args))
 
                             -- Wait for ore to be mined (removed)
-                            local timeout = 5
+                            local timeout = 1
                             while ore.Parent and timeout > 0 and isRareAutoFarming do
                                 task.wait(0.2)
                                 timeout -= 0.2
@@ -377,6 +377,124 @@ local ClickingToggle = Tabs.AutoFarm:AddToggle("SubzeroAutoClickToggle",
     end
 })
 
+
+
+
+
+
+
+
+
+
+local Toggle = Tabs.Teleports:AddToggle("ServerHopToggle", 
+{
+    Title = "Server Hop", 
+    Description = "Waits 15 seconds, then hops servers and reopens script.",
+    Default = false,
+    Callback = function(state)
+        if state then
+            print("Server Hop Toggle On")
+            task.delay(15, function()
+
+                --==[ Server Hop Code Begins Here ]==--
+
+                local PlaceID = game.PlaceId
+                local AllIDs = {}
+                local foundAnything = ""
+                local actualHour = os.date("!*t").hour
+                local Deleted = false
+
+                local File = pcall(function()
+                    AllIDs = game:GetService('HttpService'):JSONDecode(readfile("NotSameServers.json"))
+                end)
+
+                if not File then
+                    table.insert(AllIDs, actualHour)
+                    writefile("NotSameServers.json", game:GetService('HttpService'):JSONEncode(AllIDs))
+                end
+
+                function TPReturner()
+                    local Site
+                    if foundAnything == "" then
+                        Site = game.HttpService:JSONDecode(game:HttpGet('https://games.roblox.com/v1/games/' .. PlaceID .. '/servers/Public?sortOrder=Asc&limit=100'))
+                    else
+                        Site = game.HttpService:JSONDecode(game:HttpGet('https://games.roblox.com/v1/games/' .. PlaceID .. '/servers/Public?sortOrder=Asc&limit=100&cursor=' .. foundAnything))
+                    end
+
+                    local ID = ""
+                    if Site.nextPageCursor and Site.nextPageCursor ~= "null" and Site.nextPageCursor ~= nil then
+                        foundAnything = Site.nextPageCursor
+                    end
+
+                    local num = 0
+                    for i,v in pairs(Site.data) do
+                        local Possible = true
+                        ID = tostring(v.id)
+                        if tonumber(v.maxPlayers) > tonumber(v.playing) then
+                            for _,Existing in pairs(AllIDs) do
+                                if num ~= 0 then
+                                    if ID == tostring(Existing) then
+                                        Possible = false
+                                    end
+                                else
+                                    if tonumber(actualHour) ~= tonumber(Existing) then
+                                        pcall(function()
+                                            delfile("NotSameServers.json")
+                                            AllIDs = {}
+                                            table.insert(AllIDs, actualHour)
+                                        end)
+                                    end
+                                end
+                                num = num + 1
+                            end
+                            if Possible == true then
+                                table.insert(AllIDs, ID)
+                                pcall(function()
+                                    local queuedCode = [[ 
+loadstring(game:HttpGet("https://raw.githubusercontent.com/NGW12345/blackberry/main/OPScript"))()
+                                    ]]
+                                    queue_on_teleport(queuedCode)
+                                    writefile("NotSameServers.json", game:GetService('HttpService'):JSONEncode(AllIDs))
+                                    wait()
+                                    game:GetService("TeleportService"):TeleportToPlaceInstance(PlaceID, ID, game.Players.LocalPlayer)
+                                end)
+                                wait(4)
+                            end
+                        end
+                    end
+                end
+
+                function Teleport()
+                    pcall(function()
+                        TPReturner()
+                        if foundAnything ~= "" then
+                            TPReturner()
+                        end
+                    end)
+                end
+
+                Teleport()
+
+                --==[ Server Hop Code Ends Here ]==--
+
+            end)
+        else
+            print("Server Hop Toggle Off")
+        end
+    end 
+})
+
+
+
+
+
+
+
+
+
+
+
+--[[
 local HttpService = game:GetService("HttpService")
 local TeleportService = game:GetService("TeleportService")
 local Players = game:GetService("Players")
@@ -486,7 +604,7 @@ local Toggle = Tabs.Teleports:AddToggle("ServerHopToggle",
         end
     end
 })
-
+]]--
 
 local Section = Tabs.Teleports:AddSection("Runes")
 
