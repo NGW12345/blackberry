@@ -1556,7 +1556,7 @@ local isAutoLayerTeleportEnabled = false
 
 -- Toggle to activate teleport from spawn
 Tabs.Teleports:AddToggle("TeleportFromSpawnToggle", {
-    Title = "Auto Teleport to Layer From Spawn",
+    Title = "Auto Teleport to Layer From Spawn2",
     Description = "Teleports to chosen layer if sent back to spawn",
     Default = false,
     Callback = function(state)
