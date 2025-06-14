@@ -908,7 +908,7 @@ local playerGui = player:WaitForChild("PlayerGui")
 
 local Toggle = Tabs.Teleports:AddToggle("MyToggle", 
 {
-    Title = "Hide Popups", 
+    Title = "Hide Popups v2", 
     Description = "Disables popups, notifications, and cards",
     Default = false,
     Callback = function(state)
