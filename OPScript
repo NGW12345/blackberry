@@ -909,14 +909,14 @@ local playerGui = player:WaitForChild("PlayerGui")
 local Toggle = Tabs.Teleports:AddToggle("HideUIStuffToggle", 
 {
     Title = "Hide Popups & Cards", 
-    Description = "Disables notifications, popups, cards, templates, prompts",
+    Description = "Disables popups",
     Default = false,
     Callback = function(state)
         local function disableGUIObjects(container)
             for _, obj in pairs(container:GetDescendants()) do
                 if obj:IsA("ScreenGui") or obj:IsA("BillboardGui") or obj:IsA("Frame") then
                     local name = obj.Name:lower()
-                    if name:find("notification") or name:find("popup") or name:find("card") or name:find("template") or name:find("prompt") then
+                    if name:find("popup") then
                         if obj:IsA("ScreenGui") or obj:IsA("BillboardGui") then
                             obj.Enabled = not not (not state)
                         elseif obj:IsA("Frame") and obj.Visible ~= nil then
