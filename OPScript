@@ -906,32 +906,28 @@ local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
-local Toggle = Tabs.Teleports:AddToggle("MyToggle", 
+local Toggle = Tabs.Teleports:AddToggle("HideUIStuffToggle", 
 {
-    Title = "Hide Popups v2", 
-    Description = "Disables popups, notifications, and cards",
+    Title = "Hide Popups & Cards", 
+    Description = "Disables notifications, popups, cards, templates, prompts",
     Default = false,
     Callback = function(state)
-        if state then
-            for _, gui in pairs(playerGui:GetChildren()) do
-                if gui:IsA("ScreenGui") or gui:IsA("BillboardGui") then
-                    local name = gui.Name:lower()
-                    if name:find("notification") or name:find("popup") or name:find("SendRelic") or name:find("prompt") then
-                        gui.Enabled = false
-                    end
-                end
-            end
-        else
-            -- Optional: Re-enable if needed
-            for _, gui in pairs(playerGui:GetChildren()) do
-                if gui:IsA("ScreenGui") or gui:IsA("BillboardGui") then
-                    local name = gui.Name:lower()
-                    if name:find("notification") or name:find("popup") or name:find("card") or name:find("prompt") then
-                        gui.Enabled = true
+        local function disableGUIObjects(container)
+            for _, obj in pairs(container:GetDescendants()) do
+                if obj:IsA("ScreenGui") or obj:IsA("BillboardGui") or obj:IsA("Frame") then
+                    local name = obj.Name:lower()
+                    if name:find("notification") or name:find("popup") or name:find("card") or name:find("template") or name:find("prompt") then
+                        if obj:IsA("ScreenGui") or obj:IsA("BillboardGui") then
+                            obj.Enabled = not not (not state)
+                        elseif obj:IsA("Frame") and obj.Visible ~= nil then
+                            obj.Visible = not state
+                        end
                     end
                 end
             end
         end
+
+        disableGUIObjects(playerGui)
     end 
 })
 
