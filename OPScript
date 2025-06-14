@@ -902,6 +902,38 @@ Tabs.Teleports:AddToggle("TeleportFromSpawnToggle", {
     end
 })
 
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+local Toggle = Tabs.Teleports:AddToggle("MyToggle", 
+{
+    Title = "Hide Popups", 
+    Description = "Disables popups, notifications, and cards",
+    Default = false,
+    Callback = function(state)
+        if state then
+            for _, gui in pairs(playerGui:GetChildren()) do
+                if gui:IsA("ScreenGui") or gui:IsA("BillboardGui") then
+                    local name = gui.Name:lower()
+                    if name:find("notification") or name:find("popup") or name:find("card") or name:find("prompt") then
+                        gui.Enabled = false
+                    end
+                end
+            end
+        else
+            -- Optional: Re-enable if needed
+            for _, gui in pairs(playerGui:GetChildren()) do
+                if gui:IsA("ScreenGui") or gui:IsA("BillboardGui") then
+                    local name = gui.Name:lower()
+                    if name:find("notification") or name:find("popup") or name:find("card") or name:find("prompt") then
+                        gui.Enabled = true
+                    end
+                end
+            end
+        end
+    end 
+})
 
 
 
