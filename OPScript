@@ -916,7 +916,7 @@ local Toggle = Tabs.Teleports:AddToggle("MyToggle",
             for _, gui in pairs(playerGui:GetChildren()) do
                 if gui:IsA("ScreenGui") or gui:IsA("BillboardGui") then
                     local name = gui.Name:lower()
-                    if name:find("notification") or name:find("popup") or name:find("card") or name:find("prompt") then
+                    if name:find("notification") or name:find("popup") or name:find("SendRelic") or name:find("prompt") then
                         gui.Enabled = false
                     end
                 end
