@@ -166,7 +166,7 @@ local FarmToggle = Tabs.AutoFarm:AddToggle("AutoFarmToggle", {
 task.spawn(function()
     local lastOre = nil
     while true do
-        task.wait(0.2) -- Adjustable delay (throttle frequency)
+        task.wait(5) -- Adjustable delay (throttle frequency)
 
         if isAutoFarm and rootPart then
             local oreBelow = getClosestOreBelow(30, 4)
