@@ -795,6 +795,57 @@ local Toggle = Tabs.Teleports:AddToggle("AntiTeleportToSpawnToggle",
     end 
 })
 
+local Players = game:GetService("Players")
+local TeleportService = game:GetService("TeleportService")
+local player = Players.LocalPlayer
+local rootPart = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+
+local movementCheckRunning = false
+
+local TeleportIfStuckToggle = Tabs.Teleports:AddToggle("StuckCheckToggle", {
+    Title = "Teleport If Stuck",
+    Description = "If you haven't moved in 15 seconds, auto-teleports to spawn.",
+    Default = false,
+    Callback = function(state)
+        movementCheckRunning = state
+        print(state and "Stuck check enabled" or "Stuck check disabled")
+
+        if state then
+            task.spawn(function()
+                while movementCheckRunning do
+                    local character = player.Character
+                    if character then
+                        rootPart = character:FindFirstChild("HumanoidRootPart")
+                    end
+
+                    if rootPart then
+                        local initialPos = rootPart.Position
+                        task.wait(15)
+
+                        -- Re-check rootPart in case of respawn
+                        character = player.Character
+                        if character then
+                            rootPart = character:FindFirstChild("HumanoidRootPart")
+                        end
+
+                        if rootPart and movementCheckRunning then
+                            local currentPos = rootPart.Position
+                            local distanceMoved = (currentPos - initialPos).Magnitude
+                            if distanceMoved < 2 then -- Adjust tolerance if needed
+                                print("Character hasn't moved. Teleporting to spawn.")
+                                rootPart.CFrame = CFrame.new(workspace.SpawnLocation.Position + Vector3.new(0, 5, 0))
+                            end
+                        end
+                    end
+
+                    task.wait(1) -- Slight buffer before checking again
+                end
+            end)
+        end
+    end
+})
+
+
 -- Dropdown for layer selection
 local selectedLayer = "Darkstone"
 Tabs.Teleports:AddDropdown("LayerDropdown", {
