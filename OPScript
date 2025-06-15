@@ -933,15 +933,15 @@ local Toggle = Tabs.Teleports:AddToggle("HideUIStuffToggle",
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 
-local DEPTH_LIMIT = -1000
-local SPAWN_POSITION = Vector3.new(0, 100, 0) -- Replace with your real spawn position
+local DEPTH_LIMIT = -2000
+local SPAWN_POSITION = Vector3.new(-133.375656, 29.663414, 105.001854) -- Replace with your real spawn position
 
 local teleportLoopRunning = false
 local canTeleport = true
 
 local Toggle = Tabs.Teleports:AddToggle("AutoReturnFromDepth", 
 {
-    Title = "Auto Return from Depth v2", 
+    Title = "Auto Return from Depth", 
     Description = "Teleports you to spawn once if you fall below -8000 Y",
     Default = false,
     Callback = function(state)
