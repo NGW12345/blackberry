@@ -933,8 +933,8 @@ local Toggle = Tabs.Teleports:AddToggle("HideUIStuffToggle",
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 
--- Mutable depth limit (can be changed at runtime)
-local depthLimit = -2000
+-- This will be updated dynamically by the slider
+local depthLimit = -2000 -- in world Y
 local SPAWN_POSITION = Vector3.new(-133.375656, 29.663414, 105.001854)
 
 local teleportLoopRunning = false
@@ -974,18 +974,21 @@ local Toggle = Tabs.Teleports:AddToggle("AutoReturnFromDepth",
     end 
 })
 
--- Add a slider to control depth dynamically
+-- Add a slider for "mining depth" (converts to Y position using scale)
 local Slider = Tabs.Teleports:AddSlider("DepthLimitSlider", {
     Title = "Depth Limit",
-    Description = "Teleport if you go below this depth",
-    Default = 2000,
-    Min = 100,
-    Max = 10000,
+    Description = "Teleport if your mining depth goes beyond this",
+    Default = 6000,
+    Min = 600,
+    Max = 60000,
     Rounding = 0,
-    Callback = function(value)
-        depthLimit = -value -- flip since Y is negative
+    Callback = function(depth)
+        local scale = 0.165 -- experimentally determined from your examples
+        local yLimit = depth * scale
+        depthLimit = yLimit -- because depth is positive, Y goes down
     end
 })
+
 
 
 
