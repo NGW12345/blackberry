@@ -933,16 +933,18 @@ local Toggle = Tabs.Teleports:AddToggle("HideUIStuffToggle",
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 
+-- Mutable depth limit (can be changed at runtime)
 local depthLimit = -2000
-local SPAWN_POSITION = Vector3.new(-133.375656, 29.663414, 105.001854) -- Replace with your real spawn position
+local SPAWN_POSITION = Vector3.new(-133.375656, 29.663414, 105.001854)
 
 local teleportLoopRunning = false
 local canTeleport = true
 
+-- Create the toggle
 local Toggle = Tabs.Teleports:AddToggle("AutoReturnFromDepth", 
 {
     Title = "Auto Return from Depth", 
-    Description = "Teleports you to spawn once if you fall below -8000 Y",
+    Description = "Teleports you to spawn once if you fall below the selected depth",
     Default = false,
     Callback = function(state)
         if state then
@@ -971,6 +973,20 @@ local Toggle = Tabs.Teleports:AddToggle("AutoReturnFromDepth",
         end
     end 
 })
+
+-- Add a slider to control depth dynamically
+local Slider = Tabs.Teleports:AddSlider("DepthLimitSlider", {
+    Title = "Depth Limit",
+    Description = "Teleport if you go below this depth",
+    Default = 2000,
+    Min = 100,
+    Max = 10000,
+    Rounding = 0,
+    Callback = function(value)
+        depthLimit = -value -- flip since Y is negative
+    end
+})
+
 
 
 
