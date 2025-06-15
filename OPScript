@@ -936,7 +936,7 @@ local player = Players.LocalPlayer
 local SPAWN_POSITION = Vector3.new(-133.375656, 29.663414, 105.001854)
 
 -- Depth 0 starts at Y = 6
-local SURFACE_Y = 0
+local SURFACE_Y = 6
 local BLOCK_HEIGHT = 6
 
 local depthLimit = SURFACE_Y - 2000 * BLOCK_HEIGHT
@@ -946,7 +946,7 @@ local canTeleport = true
 -- Toggle to enable the check
 local Toggle = Tabs.Teleports:AddToggle("AutoReturnFromDepth", 
 {
-    Title = "Auto Return from Depth", 
+    Title = "Auto Return from Depth v2", 
     Description = "Teleports you to spawn once if you go below the selected mining depth.",
     Default = false,
     Callback = function(state)
