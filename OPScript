@@ -934,24 +934,26 @@ local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 
 local DEPTH_LIMIT = -1000
-local SPAWN_POSITION = Vector3.new(0, 100, 0) -- Change to your actual spawn position
-local teleportLoop = nil
+local SPAWN_POSITION = Vector3.new(0, 100, 0) -- Replace with your real spawn position
+
+local teleportLoopRunning = false
 local canTeleport = true
 
 local Toggle = Tabs.Teleports:AddToggle("AutoReturnFromDepth", 
 {
     Title = "Auto Return from Depth", 
-    Description = "Teleports you once if you fall below -8000 Y",
+    Description = "Teleports you to spawn once if you fall below -8000 Y",
     Default = false,
     Callback = function(state)
         if state then
-            teleportLoop = task.spawn(function()
-                while true do
-                    if not teleportLoop then break end
+            teleportLoopRunning = true
+            task.spawn(function()
+                while teleportLoopRunning do
+                    local character = player.Character or player.CharacterAdded:Wait()
+                    local hrp = character:FindFirstChild("HumanoidRootPart")
 
-                    local character = player.Character
-                    if character and character:FindFirstChild("HumanoidRootPart") then
-                        local y = character.HumanoidRootPart.Position.Y
+                    if hrp then
+                        local y = hrp.Position.Y
 
                         if y < DEPTH_LIMIT and canTeleport then
                             character:MoveTo(SPAWN_POSITION)
@@ -960,14 +962,16 @@ local Toggle = Tabs.Teleports:AddToggle("AutoReturnFromDepth",
                             canTeleport = true
                         end
                     end
+
                     task.wait(1.5)
                 end
             end)
         else
-            teleportLoop = nil
+            teleportLoopRunning = false
         end
     end 
 })
+
 
 
 
