@@ -941,7 +941,7 @@ local canTeleport = true
 
 local Toggle = Tabs.Teleports:AddToggle("AutoReturnFromDepth", 
 {
-    Title = "Auto Return from Depth", 
+    Title = "Auto Return from Depth v2", 
     Description = "Teleports you to spawn once if you fall below -8000 Y",
     Default = false,
     Callback = function(state)
