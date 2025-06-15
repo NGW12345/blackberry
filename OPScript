@@ -931,37 +931,44 @@ local Toggle = Tabs.Teleports:AddToggle("HideUIStuffToggle",
 })
 
 local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
 
 local DEPTH_LIMIT = -1000
-local SPAWN_POSITION = Vector3.new(-133.375656, 29.663414, 105.001854) -- Update this to your actual spawn position
+local SPAWN_POSITION = Vector3.new(0, 100, 0) -- Change to your actual spawn position
 local teleportLoop = nil
+local canTeleport = true
 
 local Toggle = Tabs.Teleports:AddToggle("AutoReturnFromDepth", 
 {
     Title = "Auto Return from Depth", 
-    Description = "Teleports you to spawn if you fall below -8000 Y",
+    Description = "Teleports you once if you fall below -8000 Y",
     Default = false,
     Callback = function(state)
         if state then
-            teleportLoop = RunService.Heartbeat:Connect(function()
-                local character = player.Character
-                if character and character:FindFirstChild("HumanoidRootPart") then
-                    local y = character.HumanoidRootPart.Position.Y
-                    if y < DEPTH_LIMIT then
-                        character:MoveTo(SPAWN_POSITION)
+            teleportLoop = task.spawn(function()
+                while true do
+                    if not teleportLoop then break end
+
+                    local character = player.Character
+                    if character and character:FindFirstChild("HumanoidRootPart") then
+                        local y = character.HumanoidRootPart.Position.Y
+
+                        if y < DEPTH_LIMIT and canTeleport then
+                            character:MoveTo(SPAWN_POSITION)
+                            canTeleport = false
+                        elseif y >= DEPTH_LIMIT then
+                            canTeleport = true
+                        end
                     end
+                    task.wait(1.5)
                 end
             end)
         else
-            if teleportLoop then
-                teleportLoop:Disconnect()
-                teleportLoop = nil
-            end
+            teleportLoop = nil
         end
     end 
 })
+
 
 
 
