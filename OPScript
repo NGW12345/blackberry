@@ -943,7 +943,7 @@ local depthLimit = SURFACE_Y - 2000 * BLOCK_HEIGHT
 local teleportLoopRunning = false
 local canTeleport = true
 
--- Toggle to enable the check
+-- Toggle to enable the depth check and teleport
 local Toggle = Tabs.Teleports:AddToggle("AutoReturnFromDepth", 
 {
     Title = "Auto Return from Depth v2", 
@@ -961,7 +961,13 @@ local Toggle = Tabs.Teleports:AddToggle("AutoReturnFromDepth",
                         local y = hrp.Position.Y
 
                         if y < depthLimit and canTeleport then
+                            -- Teleport to spawn
                             character:MoveTo(SPAWN_POSITION)
+
+                            -- Reset fall momentum to prevent falling through map
+                            hrp.Velocity = Vector3.zero
+                            hrp.AssemblyLinearVelocity = Vector3.zero
+
                             canTeleport = false
                         elseif y >= depthLimit then
                             canTeleport = true
@@ -977,7 +983,7 @@ local Toggle = Tabs.Teleports:AddToggle("AutoReturnFromDepth",
     end 
 })
 
--- Slider that maps mining depth to world Y position
+-- Slider to set depth limit
 local Slider = Tabs.Teleports:AddSlider("DepthLimitSlider", {
     Title = "Max Mining Depth",
     Description = "Teleport to spawn if you go deeper than this depth",
@@ -989,14 +995,6 @@ local Slider = Tabs.Teleports:AddSlider("DepthLimitSlider", {
         depthLimit = SURFACE_Y - (depth * BLOCK_HEIGHT)
     end
 })
-
-
-
-
-
-
-
-
 
 
 
