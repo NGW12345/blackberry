@@ -400,7 +400,7 @@ local player = Players.LocalPlayer
 
 -- Replace this with your sell area CFrame
 local SELL_CFRAME = CFrame.new(
-    28.8240128, 6.65835333, -16.9942951,
+    28.8240128, 36.65835333, -16.9942951,
     -0.925733507, -2.39939162e-08, -0.37817654,
     -3.11463424e-08, 1, 1.27963977e-08,
     0.37817654, 2.36248709e-08, -0.925733507
@@ -429,7 +429,7 @@ local Toggle = Tabs.AutoFarm:AddToggle("AutoSellToggle",
                     hrp.CFrame = SELL_CFRAME
 
                     -- Wait to make sure the sell happens
-                    task.wait(1)
+                    task.wait(5)
 
                     -- Return to original position
                     if autoSellRunning then
