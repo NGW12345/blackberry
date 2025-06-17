@@ -768,7 +768,7 @@ Tabs.Teleports:AddButton({
     end
 })
 
-local dangerPosition = Vector3.new(-133.375656, 24.663414, 105.001854)
+local dangerPosition = Vector3.new(102.676743, 6.65833378, -41.0964966)
 local safeCFrame = CFrame.new(96.0919952, 5.99999952, 102.514236, 0.158584878, -2.15407905e-08, 0.987345338, -9.94429095e-10, 1, 2.19765983e-08, -0.987345338, -4.46700144e-09, 0.158584878)
 
 local isTeleportMonitorActive = false
@@ -859,7 +859,7 @@ Tabs.Teleports:AddDropdown("LayerDropdown", {
 })
 
 -- Variables already defined
-local dangerPosition = Vector3.new(-133.375656, 24.663414, 105.001854)
+local dangerPosition = Vector3.new(102.676743, 6.65833378, -41.0964966)
 local teleportRadius = 15
 local isAutoLayerTeleportEnabled = false
 
@@ -933,7 +933,7 @@ local Toggle = Tabs.Teleports:AddToggle("HideUIStuffToggle",
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 
-local SPAWN_POSITION = Vector3.new(-133.375656, 29.663414, 105.001854)
+local SPAWN_POSITION = Vector3.new(102.676743, 6.65833378, -41.0964966)
 
 -- Depth 0 starts at Y = 6
 local SURFACE_Y = 6
