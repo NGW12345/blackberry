@@ -398,7 +398,7 @@ Section:AddParagraph({
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 
--- Replace this with your sell area CFrame
+-- Sell area CFrame
 local SELL_CFRAME = CFrame.new(
     28.8240128, 36.65835333, -16.9942951,
     -0.925733507, -2.39939162e-08, -0.37817654,
@@ -410,39 +410,46 @@ local autoSellRunning = false
 
 local Toggle = Tabs.AutoFarm:AddToggle("AutoSellToggle", 
 {
-    Title = "Auto Sell v2",
-    Description = "Teleports to the sell zone and returns back automatically.",
+    Title = "Auto Sell (Every 10 Minutes)",
+    Description = "Teleports to sell zone and back every 10 minutes.",
     Default = false,
     Callback = function(state)
         autoSellRunning = state
 
         if state then
             task.spawn(function()
+                local nextSellTime = os.clock()
+
                 while autoSellRunning do
-                    local character = player.Character or player.CharacterAdded:Wait()
-                    local hrp = character:WaitForChild("HumanoidRootPart")
+                    if os.clock() >= nextSellTime then
+                        local character = player.Character or player.CharacterAdded:Wait()
+                        local hrp = character:WaitForChild("HumanoidRootPart")
 
-                    -- Save current CFrame
-                    local originalCFrame = hrp.CFrame
+                        -- Save original position
+                        local originalCFrame = hrp.CFrame
 
-                    -- Teleport to sell zone
-                    hrp.CFrame = SELL_CFRAME
+                        -- Teleport to sell zone
+                        hrp.CFrame = SELL_CFRAME
 
-                    -- Wait to make sure the sell happens
-                    task.wait(3)
+                        -- Let the sell register (brief pause)
+                        task.wait(3)
 
-                    -- Return to original position
-                    if autoSellRunning then
-                        hrp.CFrame = originalCFrame
+                        -- Return to original position
+                        if autoSellRunning then
+                            hrp.CFrame = originalCFrame
+                        end
+
+                        -- Set next sell time (600 seconds = 10 minutes)
+                        nextSellTime = os.clock() + 600
                     end
 
-                    -- Wait before next auto-sell cycle
-                    task.wait(1000) -- Adjust time based on how often you want to sell
+                    task.wait(0.5) -- Check loop frequently but efficiently
                 end
             end)
         end
     end
 })
+
 
 --[[
 local SellToggle = Tabs.AutoFarm:AddToggle("AutoSellToggle", {
