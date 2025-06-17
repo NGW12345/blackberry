@@ -197,7 +197,7 @@ local miningThread = nil
 local Dropdown = Tabs.AutoFarm:AddDropdown("OreDropdown", {
     Title = "Select Ore",
     Description = "Choose the ore to mine",
-    Values = {"Chest", "10", "101101", "11", "12", "14", "Abyssal Stone", "Alagamite", "Alternatus", "Ambrosia", "Ammolite", "Aqueduelis Blue", "Aqueduelis Red", "Augelite", "Blue", "Chronoverde", "Coal", "Constellatium", "Copper", "Core", "Cordierite", "Crimsonstone", "Crookesite", "Celsian", "Datolite", "Darkmatter", "Darkstone", "Decayium", "Devilline", "Diamond", "Dragonglass", "Duskium", "Eclipse", "Ekanite", "Evorium", "Firecrystal", "Fracturium", "Galactium", "Galactic Shard", "Garnet", "Glitchite", "Glitchite Reborn", "Green", "Indicolite", "Indigo", "Inferno", "Iron", "Jasper", "Lightning Crystal", "Lithium", "Lucentium", "Lunalyx", "Malachite", "Marble", "Masslock", "Mineralite", "Mintite", "Miroite", "Morganite", "Nautilus", "Nautilus Evolved", "Niedermayrite", "Obamite", "Orange", "Platinum", "Plutonium", "Radiant Quartz", "Rainbonite", "Rainbonium", "Realgar", "REDACTED", "Red", "Redlinite", "Redrum", "Rozenite", "Royalty", "Ruby", "Serenity", "Shadowite", "Solar Blossom", "Spongebob", "Stone", "Stellarite", "Superium", "Taaffeite", "Timeite", "Voltiblue", "Violet", "Void Crystals", "Wadsleyite", "Warped Coal", "Yellow", "Yumium"},
+    Values = {"Chest", "Mythic Chest", "10", "101101", "11", "12", "14", "Abyssal Stone", "Alagamite", "Alternatus", "Ambrosia", "Ammolite", "Aqueduelis Blue", "Aqueduelis Red", "Augelite", "Blue", "Chronoverde", "Coal", "Constellatium", "Copper", "Core", "Cordierite", "Crimsonstone", "Crookesite", "Celsian", "Datolite", "Darkmatter", "Darkstone", "Decayium", "Devilline", "Diamond", "Dragonglass", "Duskium", "Eclipse", "Ekanite", "Evorium", "Firecrystal", "Fracturium", "Galactium", "Galactic Shard", "Garnet", "Glitchite", "Glitchite Reborn", "Green", "Indicolite", "Indigo", "Inferno", "Iron", "Jasper", "Lightning Crystal", "Lithium", "Lucentium", "Lunalyx", "Malachite", "Marble", "Masslock", "Mineralite", "Mintite", "Miroite", "Morganite", "Nautilus", "Nautilus Evolved", "Niedermayrite", "Obamite", "Orange", "Platinum", "Plutonium", "Radiant Quartz", "Rainbonite", "Rainbonium", "Realgar", "REDACTED", "Red", "Redlinite", "Redrum", "Rozenite", "Royalty", "Ruby", "Serenity", "Shadowite", "Solar Blossom", "Spongebob", "Stone", "Stellarite", "Superium", "Taaffeite", "Timeite", "Voltiblue", "Violet", "Void Crystals", "Wadsleyite", "Warped Coal", "Yellow", "Yumium"},
     Multi = false,
     Default = 1,
     Callback = function(value)
@@ -273,7 +273,7 @@ local rareOres = {
     "Nautilus Evolved", "Indicolite", "Yumium", "Superium", "Obamite", "Core", "Glitchite", "Alternatus", "Inferno", "REDACTED",
     "Galactic Shard", "Radiant Quartz", "Blue", "Indigo", "Violet", "Green", "Yellow", "Orange", "Red",
     "Duskium", "Solar Blossom", "Chronoverde", "Mintite", "Voltiblue", "Nautilus", "Lucentium", "Aqueduelis Red",
-    "Aqueduelis Blue", "Glitchite Reborn"
+    "Aqueduelis Blue", "Glitchite Reborn", "Kenosuine", "Ignatius", "Fireball", "Magbyte", "Past Memory", "1M Crystal", "Soul Lanturn", "Etherealum", "Show*rite"
 }
 
 local isRareAutoFarming = false
@@ -719,13 +719,13 @@ local Section = Tabs.Teleports:AddSection("Runes")
 
 -- Rune CFrame positions
 local runePositions = {
-    ["Starter Rune"] = CFrame.new(-177.169922, 25.5065327, 26.5225658),
-    ["Nuclear Rune"] = CFrame.new(-142.583725, 25.5065269, 26.9106922),
-    ["Cave Rune"] = CFrame.new(-112.922127, 25.5065308, 26.7023525),
+    ["Starter Rune"] = CFrame.new(76.7026367, 7.68675995, -145.781265),
+    ["Nuclear Rune"] = CFrame.new(77.1913605, 7.68669558, -168.308853),
+    ["Cave Rune"] = CFrame.new(76.6757965, 7.68670273, -192.078491),
     ["Secret Rune"] = CFrame.new(250.94101, 7.82588863, 267.365295),
-    ["Life Rune"] = CFrame.new(-300.904053, 25.5685234, 206.193466),
-    ["Inferno Rune"] = CFrame.new(-245.880951, 25.5535641, 221.215271),
-    ["Crystal Rune"] = CFrame.new(-236.478226, 25.1691093, 139.702789),
+    ["Life Rune"] = CFrame.new(-81.5868454, 7.68675947, -273.536499),
+    ["Inferno Rune"] = CFrame.new(-103.306137, 7.68675423, -314.374634),
+    ["Crystal Rune"] = CFrame.new(-122.713959, 7.86568975, -288.43161),
 }
 
 -- Track selected rune name
@@ -850,7 +850,7 @@ local selectedLayer = "Darkstone"
 Tabs.Teleports:AddDropdown("LayerDropdown", {
     Title = "Select Layer",
     Description = "Layer to teleport to when in spawn",
-    Values = {"Darkstone", "Crimson", "Marble"}, -- Replace with actual layer names
+    Values = {"Darkstone", "Crimson", "Marble", "Magma"}, -- Replace with actual layer names
     Multi = false,
     Default = 1,
     Callback = function(value)
@@ -995,6 +995,15 @@ local Slider = Tabs.Teleports:AddSlider("DepthLimitSlider", {
         depthLimit = SURFACE_Y - (depth * BLOCK_HEIGHT)
     end
 })
+
+
+
+
+
+
+
+
+
 
 
 
