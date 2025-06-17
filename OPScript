@@ -410,7 +410,7 @@ local autoSellRunning = false
 
 local Toggle = Tabs.AutoFarm:AddToggle("AutoSellToggle", 
 {
-    Title = "Auto Sell",
+    Title = "Auto Sell v2",
     Description = "Teleports to the sell zone and returns back automatically.",
     Default = false,
     Callback = function(state)
@@ -429,7 +429,7 @@ local Toggle = Tabs.AutoFarm:AddToggle("AutoSellToggle",
                     hrp.CFrame = SELL_CFRAME
 
                     -- Wait to make sure the sell happens
-                    task.wait(5)
+                    task.wait(3)
 
                     -- Return to original position
                     if autoSellRunning then
@@ -437,7 +437,7 @@ local Toggle = Tabs.AutoFarm:AddToggle("AutoSellToggle",
                     end
 
                     -- Wait before next auto-sell cycle
-                    task.wait(100) -- Adjust time based on how often you want to sell
+                    task.wait(1000) -- Adjust time based on how often you want to sell
                 end
             end)
         end
