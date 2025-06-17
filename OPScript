@@ -273,7 +273,7 @@ local rareOres = {
     "Nautilus Evolved", "Indicolite", "Yumium", "Superium", "Obamite", "Core", "Glitchite", "Alternatus", "Inferno", "REDACTED",
     "Galactic Shard", "Radiant Quartz", "Blue", "Indigo", "Violet", "Green", "Yellow", "Orange", "Red",
     "Duskium", "Solar Blossom", "Chronoverde", "Mintite", "Voltiblue", "Nautilus", "Lucentium", "Aqueduelis Red",
-    "Aqueduelis Blue", "Glitchite Reborn", "Kenosuine", "Ignatius", "Fireball", "Magbyte", "Past Memory", "1M Crystal", "Soul Lanturn", "Etherealum", "Show*rite"
+    "Aqueduelis Blue", "Glitchite Reborn", "Kenosuine", "Ignatius", "Fireball", "Magbyte", "Past Memory", "1M Crystal", "Soul Lanturn", "Etherealum", "Show*rite", "Mythic Chest"
 }
 
 local isRareAutoFarming = false
