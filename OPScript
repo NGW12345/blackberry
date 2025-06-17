@@ -395,6 +395,56 @@ Section:AddParagraph({
     Title = "Auto Selling, Clicking and Farming"
 })
 
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
+-- Replace this with your sell area CFrame
+local SELL_CFRAME = CFrame.new(
+    28.8240128, 6.65835333, -16.9942951,
+    -0.925733507, -2.39939162e-08, -0.37817654,
+    -3.11463424e-08, 1, 1.27963977e-08,
+    0.37817654, 2.36248709e-08, -0.925733507
+)
+
+local autoSellRunning = false
+
+local Toggle = Tabs.AutoFarm:AddToggle("AutoSellToggle", 
+{
+    Title = "Auto Sell",
+    Description = "Teleports to the sell zone and returns back automatically.",
+    Default = false,
+    Callback = function(state)
+        autoSellRunning = state
+
+        if state then
+            task.spawn(function()
+                while autoSellRunning do
+                    local character = player.Character or player.CharacterAdded:Wait()
+                    local hrp = character:WaitForChild("HumanoidRootPart")
+
+                    -- Save current CFrame
+                    local originalCFrame = hrp.CFrame
+
+                    -- Teleport to sell zone
+                    hrp.CFrame = SELL_CFRAME
+
+                    -- Wait to make sure the sell happens
+                    task.wait(1)
+
+                    -- Return to original position
+                    if autoSellRunning then
+                        hrp.CFrame = originalCFrame
+                    end
+
+                    -- Wait before next auto-sell cycle
+                    task.wait(100) -- Adjust time based on how often you want to sell
+                end
+            end)
+        end
+    end
+})
+
+--[[
 local SellToggle = Tabs.AutoFarm:AddToggle("AutoSellToggle", {
     Title = "Auto Sell", 
     Description = "Sell Anywhere",
@@ -408,6 +458,7 @@ local SellToggle = Tabs.AutoFarm:AddToggle("AutoSellToggle", {
         end
     end
 })
+]]--
 
 local Toggle = Tabs.AutoFarm:AddToggle("AutoClassToggle", 
 {
