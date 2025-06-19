@@ -351,9 +351,9 @@ local rareOres = {
 
 local isRareAutoFarming = false
 
-local Toggle = Tabs.AutoFarm:AddToggle("RareOreFinderv2Toggle", 
+local Toggle = Tabs.AutoFarm:AddToggle("RareOreFinderv3Toggle", 
 {
-    Title = "Rare Ore Finder v2", 
+    Title = "Rare Ore Finder v3", 
     Description = "Teleports and mines all rare ores, then returns to original location.",
     Default = false,
     Callback = function(state)
@@ -382,6 +382,9 @@ local Toggle = Tabs.AutoFarm:AddToggle("RareOreFinderv2Toggle",
 
                             -- Teleport to ore
                             rootPart.CFrame = ore.CFrame + Vector3.new(0, 5, 0)
+
+                            -- Wait briefly for server to sync position
+                            task.wait(0.3)
 
                             -- Mine ore
                             mineOreEvent:FireServer(ore)
