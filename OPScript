@@ -351,7 +351,7 @@ local rareOres = {
 
 local isRareAutoFarming = false
 
-local Toggle = Tabs.AutoFarm:AddToggle("RareOreFinderToggle", 
+local Toggle = Tabs.AutoFarm:AddToggle("RareOreFinderv2Toggle", 
 {
     Title = "Rare Ore Finder v2", 
     Description = "Teleports and mines all rare ores, then returns to original location.",
