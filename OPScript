@@ -439,10 +439,10 @@ local rareOres = {
 
 local isRareAutoFarming = false
 
-local Toggle = Tabs.AutoFarm:AddToggle("RareOreFinderv4Toggle", 
+local Toggle = Tabs.AutoFarm:AddToggle("RareOreFinderv6Toggle", 
 {
-    Title = "Rare Ore Finder v5", 
-    Description = "Teleports and mines all rare ores, then returns to original location.",
+    Title = "Rare Ore Finder v6", 
+    Description = "Teleports and mines all rare ores from underground clone, returns to original location.",
     Default = false,
     Callback = function(state)
         isRareAutoFarming = state
@@ -473,35 +473,26 @@ local Toggle = Tabs.AutoFarm:AddToggle("RareOreFinderv4Toggle",
                             clonedOre.Parent = workspace
                             clonedOre.CFrame = ore.CFrame - Vector3.new(0, 15, 0)
 
-                            -- Hide original
-                            ore.Transparency = 1
-                            ore.CanCollide = false
-
                             task.wait(0.2)
 
-                            -- Teleport to the clone
+                            -- Teleport to underground clone
                             rootPart.CFrame = clonedOre.CFrame + Vector3.new(0, 5, 0)
                             task.wait(0.3)
 
-                            -- Mine the original ore
+                            -- Fire the mining event on the original ore
                             mineOreEvent:FireServer(ore)
 
-                            -- Wait for it to disappear or timeout
-                            local timeout = 1
+                            -- Wait until ore disappears or timeout
+                            local timeout = 1.5
                             while ore.Parent and timeout > 0 and isRareAutoFarming do
                                 task.wait(0.2)
                                 timeout -= 0.2
                             end
 
-                            -- Restore original if still there
-                            if ore and ore.Parent then
-                                ore.Transparency = 0
-                                ore.CanCollide = true
-                            end
-
+                            -- Destroy clone
                             clonedOre:Destroy()
 
-                            -- Return to original location
+                            -- Return to original position
                             if isRareAutoFarming then
                                 rootPart.CFrame = originalCFrame
                             end
