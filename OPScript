@@ -439,9 +439,9 @@ local rareOres = {
 
 local isRareAutoFarming = false
 
-local Toggle = Tabs.AutoFarm:AddToggle("RareOreFinderv7Toggle", 
+local Toggle = Tabs.AutoFarm:AddToggle("RareOreFinderv8Toggle", 
 {
-    Title = "Rare Ore Finder v7", 
+    Title = "Rare Ore Finder v8", 
     Description = "Teleports underground to mine rare ores then returns.",
     Default = false,
     Callback = function(state)
@@ -470,7 +470,7 @@ local Toggle = Tabs.AutoFarm:AddToggle("RareOreFinderv7Toggle",
                             rootPart.Anchored = true
 
                             -- Teleport underground near ore (you can adjust -100 if needed)
-                            rootPart.CFrame = ore.CFrame - Vector3.new(0, 30, 0)
+                            rootPart.CFrame = ore.CFrame - Vector3.new(0, -12, 0)
                             task.wait(0.3)
 
                             -- Mine the original ore
