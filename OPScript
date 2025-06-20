@@ -441,7 +441,7 @@ local isRareAutoFarming = false
 
 local Toggle = Tabs.AutoFarm:AddToggle("RareOreFinderv4Toggle", 
 {
-    Title = "Rare Ore Finder v4", 
+    Title = "Rare Ore Finder v5", 
     Description = "Teleports and mines all rare ores, then returns to original location.",
     Default = false,
     Callback = function(state)
@@ -471,7 +471,7 @@ local Toggle = Tabs.AutoFarm:AddToggle("RareOreFinderv4Toggle",
                             clonedOre.Anchored = true
                             clonedOre.CanCollide = true
                             clonedOre.Parent = workspace
-                            clonedOre.CFrame = ore.CFrame - Vector3.new(0, 50, 0)
+                            clonedOre.CFrame = ore.CFrame - Vector3.new(0, 15, 0)
 
                             -- Hide original
                             ore.Transparency = 1
