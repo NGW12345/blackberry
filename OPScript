@@ -418,10 +418,6 @@ local Toggle = Tabs.AutoFarm:AddToggle("RareOreFinderv3Toggle",
 
 
 
-
-
-
-
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -439,9 +435,9 @@ local rareOres = {
 
 local isRareAutoFarming = false
 
-local Toggle = Tabs.AutoFarm:AddToggle("RareOreFinderv8Toggle", 
+local Toggle = Tabs.AutoFarm:AddToggle("RareOreFinderv9Toggle", 
 {
-    Title = "Rare Ore Finder v8", 
+    Title = "Rare Ore Finder v9", 
     Description = "Teleports underground to mine rare ores then returns.",
     Default = false,
     Callback = function(state)
@@ -452,6 +448,7 @@ local Toggle = Tabs.AutoFarm:AddToggle("RareOreFinderv8Toggle",
                 while isRareAutoFarming do
                     local character = player.Character or player.CharacterAdded:Wait()
                     rootPart = character:WaitForChild("HumanoidRootPart")
+                    local humanoid = character:FindFirstChildOfClass("Humanoid")
 
                     local shuffled = table.clone(rareOres)
                     for i = #shuffled, 2, -1 do
@@ -466,24 +463,31 @@ local Toggle = Tabs.AutoFarm:AddToggle("RareOreFinderv8Toggle",
                         if ore and ore:IsA("BasePart") then
                             local originalCFrame = rootPart.CFrame
 
-                            -- Anchor to prevent falling
                             rootPart.Anchored = true
 
-                            -- Teleport underground near ore (you can adjust -100 if needed)
-                            rootPart.CFrame = ore.CFrame - Vector3.new(0, -12, 0)
-                            task.wait(0.3)
+                            -- Teleport just above the ore (adjust +3 studs up)
+                            rootPart.CFrame = ore.CFrame + Vector3.new(0, 12, 0)
 
-                            -- Mine the original ore
-                            mineOreEvent:FireServer(ore)
+                            -- Wait longer to let physics and server detect position properly
+                            task.wait(0.5)
 
-                            -- Wait until ore disappears or timeout
+                            -- Optional: force humanoid jump to refresh physics
+                            -- humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+
+                            -- Check distance to ore before mining
+                            if (rootPart.Position - ore.Position).Magnitude < 50 then
+                                mineOreEvent:FireServer(ore)
+                            else
+                                -- Optional debug print
+                                print("Too far from ore to mine:", oreName)
+                            end
+
                             local timeout = 1.5
                             while ore.Parent and timeout > 0 and isRareAutoFarming do
                                 task.wait(0.2)
                                 timeout -= 0.2
                             end
 
-                            -- Return to original position and unanchor
                             if isRareAutoFarming then
                                 rootPart.CFrame = originalCFrame
                             end
@@ -497,6 +501,7 @@ local Toggle = Tabs.AutoFarm:AddToggle("RareOreFinderv8Toggle",
         end
     end
 })
+
 
 
 
