@@ -424,10 +424,10 @@ local Toggle = Tabs.AutoFarm:AddToggle("RareOreFinderv3Toggle",
 
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
-local rootPart = player.Character and player.Character:WaitForChild("HumanoidRootPart")
-
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local mineOreEvent = ReplicatedStorage:WaitForChild("Events"):WaitForChild("MineOre")
+
+local rootPart = player.Character and player.Character:WaitForChild("HumanoidRootPart")
 
 local rareOres = {
     "Stone", "Eclipse", "Evorium", "Laventyx", "Royalty", "Shadowite", "Timeite", "101101", "Galactium", "Lunalyx", "Serenity",
@@ -439,10 +439,10 @@ local rareOres = {
 
 local isRareAutoFarming = false
 
-local Toggle = Tabs.AutoFarm:AddToggle("RareOreFinderv6Toggle", 
+local Toggle = Tabs.AutoFarm:AddToggle("RareOreFinderv7Toggle", 
 {
-    Title = "Rare Ore Finder v6", 
-    Description = "Teleports and mines all rare ores from underground clone, returns to original location.",
+    Title = "Rare Ore Finder v7", 
+    Description = "Teleports underground to mine rare ores then returns.",
     Default = false,
     Callback = function(state)
         isRareAutoFarming = state
@@ -466,20 +466,14 @@ local Toggle = Tabs.AutoFarm:AddToggle("RareOreFinderv6Toggle",
                         if ore and ore:IsA("BasePart") then
                             local originalCFrame = rootPart.CFrame
 
-                            -- Clone and move underground
-                            local clonedOre = ore:Clone()
-                            clonedOre.Anchored = true
-                            clonedOre.CanCollide = true
-                            clonedOre.Parent = workspace
-                            clonedOre.CFrame = ore.CFrame - Vector3.new(0, 15, 0)
+                            -- Anchor to prevent falling
+                            rootPart.Anchored = true
 
-                            task.wait(0.2)
-
-                            -- Teleport to underground clone
-                            rootPart.CFrame = clonedOre.CFrame + Vector3.new(0, 5, 0)
+                            -- Teleport underground near ore (you can adjust -100 if needed)
+                            rootPart.CFrame = ore.CFrame - Vector3.new(0, 30, 0)
                             task.wait(0.3)
 
-                            -- Fire the mining event on the original ore
+                            -- Mine the original ore
                             mineOreEvent:FireServer(ore)
 
                             -- Wait until ore disappears or timeout
@@ -489,13 +483,11 @@ local Toggle = Tabs.AutoFarm:AddToggle("RareOreFinderv6Toggle",
                                 timeout -= 0.2
                             end
 
-                            -- Destroy clone
-                            clonedOre:Destroy()
-
-                            -- Return to original position
+                            -- Return to original position and unanchor
                             if isRareAutoFarming then
                                 rootPart.CFrame = originalCFrame
                             end
+                            rootPart.Anchored = false
                         end
 
                         task.wait(0.1)
