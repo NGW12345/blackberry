@@ -418,6 +418,12 @@ local Toggle = Tabs.AutoFarm:AddToggle("RareOreFinderv3Toggle",
 
 
 
+
+
+
+
+
+
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -435,9 +441,9 @@ local rareOres = {
 
 local isRareAutoFarming = false
 
-local Toggle = Tabs.AutoFarm:AddToggle("RareOreFinderv9Toggle", 
+local Toggle = Tabs.AutoFarm:AddToggle("RareOreFinderv10Toggle", 
 {
-    Title = "Rare Ore Finder v9", 
+    Title = "Rare Ore Finder v10", 
     Description = "Teleports underground to mine rare ores then returns.",
     Default = false,
     Callback = function(state)
@@ -463,12 +469,21 @@ local Toggle = Tabs.AutoFarm:AddToggle("RareOreFinderv9Toggle",
                         if ore and ore:IsA("BasePart") then
                             local originalCFrame = rootPart.CFrame
 
+                            -- Anchor and start spinning coroutine
                             rootPart.Anchored = true
+                            local spinning = true
+                            local spinCoroutine = coroutine.create(function()
+                                while spinning do
+                                    rootPart.CFrame = rootPart.CFrame * CFrame.Angles(0, math.rad(5), 0)
+                                    task.wait(0.05)
+                                end
+                            end)
+                            coroutine.resume(spinCoroutine)
 
-                            -- Teleport just above the ore (adjust +3 studs up)
+                            -- Teleport just above the ore (adjust +12 studs up)
                             rootPart.CFrame = ore.CFrame + Vector3.new(0, 12, 0)
 
-                            -- Wait longer to let physics and server detect position properly
+                            -- Wait to let physics and server detect position properly
                             task.wait(0.5)
 
                             -- Optional: force humanoid jump to refresh physics
@@ -478,7 +493,6 @@ local Toggle = Tabs.AutoFarm:AddToggle("RareOreFinderv9Toggle",
                             if (rootPart.Position - ore.Position).Magnitude < 50 then
                                 mineOreEvent:FireServer(ore)
                             else
-                                -- Optional debug print
                                 print("Too far from ore to mine:", oreName)
                             end
 
@@ -488,10 +502,15 @@ local Toggle = Tabs.AutoFarm:AddToggle("RareOreFinderv9Toggle",
                                 timeout -= 0.2
                             end
 
+                            -- Stop spinning and unanchor
+                            spinning = false
+                            task.wait(0.1)
+                            rootPart.Anchored = false
+
+                            -- Return to original position
                             if isRareAutoFarming then
                                 rootPart.CFrame = originalCFrame
                             end
-                            rootPart.Anchored = false
                         end
 
                         task.wait(0.1)
@@ -501,6 +520,7 @@ local Toggle = Tabs.AutoFarm:AddToggle("RareOreFinderv9Toggle",
         end
     end
 })
+
 
 
 
