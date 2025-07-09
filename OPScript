@@ -150,3 +150,39 @@ local AutoRebirthToggle = Tabs.AutoFarm:AddToggle("AutoRebirthToggle", {
         end
     end
 })
+
+local shardBuying = false
+
+local shardUpgrades = {
+    "PermLuck",
+    "PermMoney",
+    "MoreShards"
+}
+
+local AutoShardBuyToggle = Tabs.AutoFarm:AddToggle("AutoShardBuyToggle", {
+    Title = "Auto Buy Shards",
+    Description = "Automatically buys all shard upgrades.",
+    Default = false,
+    Callback = function(state)
+        shardBuying = state
+
+        if shardBuying then
+            task.spawn(function()
+                while shardBuying do
+                    local remote = game:GetService("ReplicatedStorage")
+                        :WaitForChild("RemoteFunctions")
+                        :WaitForChild("RainbowShardUpgrade")
+
+                    for _, upgradeName in ipairs(shardUpgrades) do
+                        pcall(function()
+                            remote:InvokeServer(upgradeName)
+                        end)
+                        wait() -- Delay between each shard upgrade
+                    end
+
+                    wait() -- Wait before repeating the full upgrade cycle
+                end
+            end)
+        end
+    end
+})
