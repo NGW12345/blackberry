@@ -34,8 +34,8 @@ Window:SelectTab(1)
 
 local Toggle = Tabs.AutoFarm:AddToggle("AutoFarmToggle", 
 {
-    Title = "Auto Farm (Manual Remote)",
-    Description = "Auto swings using manual remote firing with stable jiggle",
+    Title = "Auto Farm (Clone Hitbox)",
+    Description = "Auto swings using manual remote firing with cloned hitbox",
     Default = false,
     Callback = function(state)
         if state then
@@ -47,57 +47,51 @@ local Toggle = Tabs.AutoFarm:AddToggle("AutoFarmToggle",
                 local player = Players.LocalPlayer
                 local remote = game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("WeaponSwingEvent")
 
-                local hitbox
-
-                -- Locate Hitbox
-                local function findHitbox()
+                local function findOriginalHitbox()
                     local charFolder = workspace:FindFirstChild(player.Name)
                     if charFolder then
                         local children = charFolder:GetChildren()
                         if #children > 0 then
                             local last = children[#children]
-                            hitbox = last:FindFirstChild("Hitbox")
+                            return last:FindFirstChild("Hitbox")
                         end
                     end
+                    return nil
                 end
 
-                findHitbox()
-
                 while getgenv().AutoFarmRunning do
-                    if not hitbox or not hitbox:IsDescendantOf(workspace) then
-                        findHitbox()
-                    end
-
-                    if hitbox and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                    local originalHitbox = findOriginalHitbox()
+                    if originalHitbox and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
                         local hrp = player.Character.HumanoidRootPart
-                        local forwardOffset = 10
-                        local baseCFrame = hrp.CFrame * CFrame.new(0, 0, -forwardOffset)
+                        local clone = originalHitbox:Clone()
 
-                        hitbox.Size = Vector3.new(25, 25, 25)
-                        hitbox.CanCollide = false
-                        hitbox.Anchored = true -- prevent physics issues
+                        clone.Name = "AutoHitbox"
+                        clone.Anchored = true
+                        clone.CanCollide = false
+                        clone.Size = Vector3.new(25, 25, 25)
+                        clone.CFrame = hrp.CFrame * CFrame.new(0, 0, -10)
+                        clone.Parent = workspace
 
-                        -- Start swing
+                        -- Fire swing events
                         remote:FireServer("SwingStart")
                         remote:FireServer("HitboxStart")
 
-                        -- Jiggle without teleporting character
-                        local swingDuration = 0.75
+                        -- Jiggle the clone in place for better coverage
                         local startTime = tick()
-
-                        while tick() - startTime < swingDuration do
-                            hitbox:PivotTo(baseCFrame * CFrame.new(0, 0, -1))
-                            task.wait(0.05)
-                            hitbox:PivotTo(baseCFrame)
+                        local jiggleAmount = 1
+                        while tick() - startTime < 0.75 do
+                            clone.CFrame = hrp.CFrame * CFrame.new(0, 0, -10 + math.random(-jiggleAmount, jiggleAmount))
                             task.wait(0.05)
                         end
 
-                        -- End swing
+                        -- End swing and cleanup
                         remote:FireServer("HitboxEnd")
                         remote:FireServer("SwingEnd")
 
-                        task.wait(0.15)
+                        clone:Destroy()
                     end
+
+                    task.wait(0.15)
                 end
             end)
         else
