@@ -35,7 +35,7 @@ Window:SelectTab(1)
 local Toggle = Tabs.AutoFarm:AddToggle("AutoFarmToggle", 
 {
     Title = "Auto Farm (Manual Remote)",
-    Description = "Auto swings using manual remote firing with longer hitbox v3",
+    Description = "Auto swings using manual remote firing with longer hitbox",
     Default = false,
     Callback = function(state)
         if state then
@@ -49,6 +49,7 @@ local Toggle = Tabs.AutoFarm:AddToggle("AutoFarmToggle",
 
                 local hitbox
 
+                -- Try to locate the Hitbox part dynamically
                 local function findHitbox()
                     local charFolder = workspace:FindFirstChild(player.Name)
                     if charFolder then
@@ -67,6 +68,7 @@ local Toggle = Tabs.AutoFarm:AddToggle("AutoFarmToggle",
                         findHitbox()
                     end
 
+                    -- Move hitbox forward and enlarge it
                     if hitbox and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
                         local hrp = player.Character.HumanoidRootPart
                         local forwardOffset = 0
@@ -76,32 +78,21 @@ local Toggle = Tabs.AutoFarm:AddToggle("AutoFarmToggle",
                         hitbox.CanCollide = false
                     end
 
-                    -- Start swing once
+                    -- Manual remote firing sequence with looped HitboxStart/HitboxEnd
                     remote:FireServer("SwingStart")
 
-                    local swingDuration = 10 -- seconds, adjust as needed
+                    -- Loop HitboxStart and HitboxEnd repeatedly during the swing
+                    local swingDuration = 5  -- seconds to hold the swing active; adjust as needed
                     local startTime = tick()
-
                     while tick() - startTime < swingDuration and getgenv().AutoFarmRunning do
-                        if hitbox and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-                            local hrp = player.Character.HumanoidRootPart
-                            local newCFrame = hrp.CFrame * CFrame.new(0, 0, -forwardOffset)
-                            hitbox.Position = newCFrame.Position
-                            hitbox.Size = Vector3.new(35, 35, 35)
-                            hitbox.CanCollide = false
-                        end
-
-                        -- Fire hitbox start/end per tick
                         remote:FireServer("HitboxStart")
                         remote:FireServer("HitboxEnd")
-
-                        task.wait(0.2) -- slightly longer delay to prevent overwhelming
+                        task.wait(0.15) -- delay between repeated hitbox triggers
                     end
 
-                    -- End swing once after the loop
                     remote:FireServer("SwingEnd")
 
-                    task.wait(0.5) -- delay before next swing cycle
+                    task.wait(0.15) -- delay between swings; adjust as needed
                 end
             end)
         else
