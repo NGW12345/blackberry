@@ -35,7 +35,7 @@ Window:SelectTab(1)
 local Toggle = Tabs.AutoFarm:AddToggle("AutoFarmToggle", 
 {
     Title = "Auto Farm (Manual Remote)",
-    Description = "Auto swings using manual remote firing with jiggle hitbox for multiple hits",
+    Description = "Auto swings using manual remote firing with continuous jiggle",
     Default = false,
     Callback = function(state)
         if state then
@@ -49,7 +49,7 @@ local Toggle = Tabs.AutoFarm:AddToggle("AutoFarmToggle",
 
                 local hitbox
 
-                -- Locate the Hitbox part dynamically
+                -- Locate Hitbox
                 local function findHitbox()
                     local charFolder = workspace:FindFirstChild(player.Name)
                     if charFolder then
@@ -76,20 +76,21 @@ local Toggle = Tabs.AutoFarm:AddToggle("AutoFarmToggle",
                         hitbox.Size = Vector3.new(25, 25, 25)
                         hitbox.CanCollide = false
 
-                        -- Begin swing
+                        -- Start swing
                         remote:FireServer("SwingStart")
                         remote:FireServer("HitboxStart")
 
-                        -- Jiggle hitbox to simulate multiple hits
-                        local jiggleCount = 5
-                        local jiggleDistance = 5
-                        local jiggleDelay = 0.1
+                        -- Jiggle continuously for duration
+                        local swingDuration = 0.75 -- time hitbox remains active
+                        local startTime = tick()
 
-                        for i = 1, jiggleCount do
-                            hitbox.Position = baseCFrame.Position + Vector3.new(0, 0, -jiggleDistance)
-                            task.wait(jiggleDelay)
-                            hitbox.Position = baseCFrame.Position
-                            task.wait(jiggleDelay)
+                        while tick() - startTime < swingDuration do
+                            -- Jiggle slightly forward
+                            hitbox.CFrame = baseCFrame * CFrame.new(0, 0, -1)
+                            task.wait(0.05)
+                            -- Back to base
+                            hitbox.CFrame = baseCFrame
+                            task.wait(0.05)
                         end
 
                         -- End swing
