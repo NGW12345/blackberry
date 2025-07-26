@@ -68,7 +68,7 @@ local Toggle = Tabs.AutoFarm:AddToggle("AutoFarmToggle",
                         findHitbox()
                     end
 
-                    -- Move hitbox forward and enlarge it
+                    -- Move hitbox forward and enlarge it before swing start
                     if hitbox and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
                         local hrp = player.Character.HumanoidRootPart
                         local forwardOffset = 0
@@ -81,13 +81,21 @@ local Toggle = Tabs.AutoFarm:AddToggle("AutoFarmToggle",
                     -- Manual remote firing sequence with looped HitboxStart/HitboxEnd
                     remote:FireServer("SwingStart")
 
-                    -- Loop HitboxStart and HitboxEnd repeatedly during the swing
-                    local swingDuration = 30  -- seconds to hold the swing active; adjust as needed
+                    local swingDuration = 5  -- seconds to hold the swing active; adjust as needed
                     local startTime = tick()
                     while tick() - startTime < swingDuration and getgenv().AutoFarmRunning do
+                        -- Reset hitbox size and position on every loop iteration
+                        if hitbox and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                            local hrp = player.Character.HumanoidRootPart
+                            local newCFrame = hrp.CFrame * CFrame.new(0, 0, -forwardOffset)
+                            hitbox.Position = newCFrame.Position
+                            hitbox.Size = Vector3.new(35, 35, 35)
+                            hitbox.CanCollide = false
+                        end
+
                         remote:FireServer("HitboxStart")
                         remote:FireServer("HitboxEnd")
-                        task.wait(0.15) -- delay between repeated hitbox triggers
+                        task.wait(0.15)
                     end
 
                     remote:FireServer("SwingEnd")
