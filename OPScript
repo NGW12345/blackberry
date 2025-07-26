@@ -34,8 +34,8 @@ Window:SelectTab(1)
 
 local Toggle = Tabs.AutoFarm:AddToggle("AutoFarmToggle", 
 {
-    Title = "Auto Farm (Clone Hitbox)",
-    Description = "Auto swings using manual remote firing with cloned hitbox",
+    Title = "Auto Farm (Manual Remote)",
+    Description = "Auto swings using manual remote firing with pulsing hitbox",
     Default = false,
     Callback = function(state)
         if state then
@@ -47,51 +47,58 @@ local Toggle = Tabs.AutoFarm:AddToggle("AutoFarmToggle",
                 local player = Players.LocalPlayer
                 local remote = game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("WeaponSwingEvent")
 
-                local function findOriginalHitbox()
+                local hitbox
+
+                -- Try to locate the Hitbox part dynamically
+                local function findHitbox()
                     local charFolder = workspace:FindFirstChild(player.Name)
                     if charFolder then
                         local children = charFolder:GetChildren()
                         if #children > 0 then
                             local last = children[#children]
-                            return last:FindFirstChild("Hitbox")
+                            hitbox = last:FindFirstChild("Hitbox")
                         end
                     end
-                    return nil
                 end
 
-                while getgenv().AutoFarmRunning do
-                    local originalHitbox = findOriginalHitbox()
-                    if originalHitbox and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-                        local hrp = player.Character.HumanoidRootPart
-                        local clone = originalHitbox:Clone()
+                findHitbox()
 
-                        clone.Name = "AutoHitbox"
-                        clone.Anchored = true
-                        clone.CanCollide = false
-                        clone.Size = Vector3.new(25, 25, 25)
-                        clone.CFrame = hrp.CFrame * CFrame.new(0, 0, -10)
-                        clone.Parent = workspace
+                while getgenv().AutoFarmRunning do
+                    if not hitbox or not hitbox:IsDescendantOf(workspace) then
+                        findHitbox()
+                    end
+
+                    if hitbox and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                        local hrp = player.Character.HumanoidRootPart
+                        hitbox.Anchored = true
+                        hitbox.CanCollide = false
 
                         -- Fire swing events
                         remote:FireServer("SwingStart")
                         remote:FireServer("HitboxStart")
 
-                        -- Jiggle the clone in place for better coverage
-                        local startTime = tick()
-                        local jiggleAmount = 1
-                        while tick() - startTime < 0.75 do
-                            clone.CFrame = hrp.CFrame * CFrame.new(0, 0, -10 + math.random(-jiggleAmount, jiggleAmount))
+                        -- Pulse the hitbox size in a loop for 1 second (or however long swing lasts)
+                        local swingDuration = 10 -- change this if needed
+                        local swingStart = tick()
+
+                        while tick() - swingStart < swingDuration do
+                            hitbox.CFrame = hrp.CFrame * CFrame.new(0, 0, -10)
+
+                            hitbox.Size = Vector3.new(1, 1, 1)
+                            task.wait(0.05)
+
+                            hitbox.Size = Vector3.new(15, 15, 15)
+                            task.wait(0.05)
+
+                            hitbox.Size = Vector3.new(25, 25, 25)
                             task.wait(0.05)
                         end
 
-                        -- End swing and cleanup
                         remote:FireServer("HitboxEnd")
                         remote:FireServer("SwingEnd")
-
-                        clone:Destroy()
                     end
 
-                    task.wait(0.15)
+                    task.wait(0.15) -- Delay between swings
                 end
             end)
         else
