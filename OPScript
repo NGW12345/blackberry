@@ -35,7 +35,7 @@ Window:SelectTab(1)
 local Toggle = Tabs.AutoFarm:AddToggle("AutoFarmToggle", 
 {
     Title = "Auto Farm (Manual Remote)",
-    Description = "Auto swings using manual remote firing with pulsing hitbox",
+    Description = "Auto swings using manual remote firing with longer hitbox",
     Default = false,
     Callback = function(state)
         if state then
@@ -68,37 +68,31 @@ local Toggle = Tabs.AutoFarm:AddToggle("AutoFarmToggle",
                         findHitbox()
                     end
 
+                    -- Move hitbox forward and enlarge it
                     if hitbox and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
                         local hrp = player.Character.HumanoidRootPart
-                        hitbox.Anchored = true
+                        local forwardOffset = 0
+                        local newCFrame = hrp.CFrame * CFrame.new(0, 0, -forwardOffset)
+                        hitbox.Position = newCFrame.Position
+                        hitbox.Size = Vector3.new(35, 35, 35)
                         hitbox.CanCollide = false
-
-                        -- Fire swing events
-                        remote:FireServer("SwingStart")
-                        remote:FireServer("HitboxStart")
-
-                        -- Pulse the hitbox size in a loop for 1 second (or however long swing lasts)
-                        local swingDuration = 10 -- change this if needed
-                        local swingStart = tick()
-
-                        while tick() - swingStart < swingDuration do
-                            hitbox.CFrame = hrp.CFrame * CFrame.new(0, 0, -10)
-
-                            hitbox.Size = Vector3.new(1, 1, 1)
-                            task.wait(0.05)
-
-                            hitbox.Size = Vector3.new(15, 15, 15)
-                            task.wait(0.05)
-
-                            hitbox.Size = Vector3.new(25, 25, 25)
-                            task.wait(0.05)
-                        end
-
-                        remote:FireServer("HitboxEnd")
-                        remote:FireServer("SwingEnd")
                     end
 
-                    task.wait(0.15) -- Delay between swings
+                    -- Manual remote firing sequence with looped HitboxStart/HitboxEnd
+                    remote:FireServer("SwingStart")
+
+                    -- Loop HitboxStart and HitboxEnd repeatedly during the swing
+                    local swingDuration = 30  -- seconds to hold the swing active; adjust as needed
+                    local startTime = tick()
+                    while tick() - startTime < swingDuration and getgenv().AutoFarmRunning do
+                        remote:FireServer("HitboxStart")
+                        remote:FireServer("HitboxEnd")
+                        task.wait(0.15) -- delay between repeated hitbox triggers
+                    end
+
+                    remote:FireServer("SwingEnd")
+
+                    task.wait(0.15) -- delay between swings; adjust as needed
                 end
             end)
         else
