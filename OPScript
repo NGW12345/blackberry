@@ -146,3 +146,39 @@ local Toggle = Tabs.AutoFarm:AddToggle("AutoUpgradeToggle",
         end
     end 
 })
+local Toggle = Tabs.AutoFarm:AddToggle("AutoRebirthUpgradeToggle", 
+{
+    Title = "Auto Rebirth Upgrades", 
+    Description = "Automatically buys max upgrades for CollectAmountReb, RadiusReb, and StickCooldownReb",
+    Default = false,
+    Callback = function(state)
+        local ReplicatedStorage = game:GetService("ReplicatedStorage")
+        local Players = game:GetService("Players")
+        local player = Players.LocalPlayer
+        local valuesFolder = player:WaitForChild("Values")
+        local upgradeRemote = ReplicatedStorage:WaitForChild("Events"):WaitForChild("BuyMaxUpgrade")
+
+        if state then
+            print("Auto Rebirth Upgrade ON")
+            getgenv().AutoRebirthUpgrade = true
+
+            task.spawn(function()
+                while getgenv().AutoRebirthUpgrade do
+                    -- List of rebirth upgrades
+                    local upgrades = {"CollectAmountReb", "RadiusReb", "StickCooldownReb"}
+
+                    for _, upgrade in ipairs(upgrades) do
+                        local args = { upgrade, valuesFolder:WaitForChild("Rebirths") }
+                        upgradeRemote:FireServer(unpack(args))
+                        task.wait(0.1) -- slight delay between each upgrade
+                    end
+
+                    task.wait(0.5) -- loop delay
+                end
+            end)
+        else
+            print("Auto Rebirth Upgrade OFF")
+            getgenv().AutoRebirthUpgrade = false
+        end
+    end 
+})
