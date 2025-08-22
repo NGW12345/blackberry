@@ -109,3 +109,40 @@ local Toggle = Tabs.AutoFarm:AddToggle("AutoClickToggle",
         end
     end 
 })
+
+local Toggle = Tabs.AutoFarm:AddToggle("AutoUpgradeToggle", 
+{
+    Title = "Auto Upgrades", 
+    Description = "Automatically buys max upgrades for StickCooldown, CollectAmount, and MaxCapacity",
+    Default = false,
+    Callback = function(state)
+        local ReplicatedStorage = game:GetService("ReplicatedStorage")
+        local Players = game:GetService("Players")
+        local player = Players.LocalPlayer
+        local valuesFolder = player:WaitForChild("Values")
+        local upgradeRemote = ReplicatedStorage:WaitForChild("Events"):WaitForChild("BuyMaxUpgrade")
+
+        if state then
+            print("Auto Upgrade ON")
+            getgenv().AutoUpgrade = true
+
+            task.spawn(function()
+                while getgenv().AutoUpgrade do
+                    -- List of all upgrades
+                    local upgrades = {"StickCooldown", "CollectAmount", "MaxCapacity"}
+
+                    for _, upgrade in ipairs(upgrades) do
+                        local args = { upgrade, valuesFolder:WaitForChild("Sticks") }
+                        upgradeRemote:FireServer(unpack(args))
+                        task.wait(0.1) -- slight delay between upgrades
+                    end
+
+                    task.wait(0.5) -- main loop delay
+                end
+            end)
+        else
+            print("Auto Upgrade OFF")
+            getgenv().AutoUpgrade = false
+        end
+    end 
+})
