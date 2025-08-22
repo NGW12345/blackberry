@@ -1,7 +1,5 @@
 local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
-
 local CurrentVersion = "Infinite Mining Incremental v1"
-
 local Window = Fluent:CreateWindow({
     Title = CurrentVersion,
     SubTitle = "by ngw12345",
@@ -11,93 +9,103 @@ local Window = Fluent:CreateWindow({
     Theme = "Darker",
     MinimizeKey = Enum.KeyCode.LeftControl -- Used when theres no MinimizeKeybind
 })
-
--- Local Var List
-
--- Fluent provides Lucide Icons, they are optional
 local Tabs = {
     Teleports = Window:AddTab({ Title = "Teleports", Icon = "rocket" }),
     AutoFarm = Window:AddTab({ Title = "Automation", Icon = "crown" }),
     Settings = Window:AddTab({ Title = "Settings", Icon = "settings" })
 }
-
 local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
 local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
-
 SaveManager:SetLibrary(Fluent)
 InterfaceManager:SetLibrary(Fluent)
-
 InterfaceManager:BuildInterfaceSection(Tabs.Settings)
 SaveManager:BuildConfigSection(Tabs.Settings)
-
 Window:SelectTab(1)
 
-local Toggle = Tabs.AutoFarm:AddToggle("AutoFarmToggle", 
+local Toggle = Tabs.AutoFarm:AddToggle("PickupRadiusToggle", 
 {
-    Title = "Auto Farm (Manual Remote)",
-    Description = "Auto swings using manual remote firing with longer hitbox",
+    Title = "Huge Pickup Radius", 
+    Description = "Keeps PickupRadius size forced to (0.001, 2000, 2000)",
     Default = false,
     Callback = function(state)
+        local player = game:GetService("Players").LocalPlayer
+
         if state then
-            print("AutoFarm On")
-            getgenv().AutoFarmRunning = true
+            print("Pickup Radius ON")
+            getgenv().PickupRadiusRunning = true
 
             task.spawn(function()
-                local Players = game:GetService("Players")
-                local player = Players.LocalPlayer
-                local remote = game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("WeaponSwingEvent")
+                while getgenv().PickupRadiusRunning do
+                    local character = player.Character or player.CharacterAdded:Wait()
+                    local pickupRadius = character:FindFirstChild("PickupRadius")
 
-                local hitbox
-
-                -- Try to locate the Hitbox part dynamically
-                local function findHitbox()
-                    local charFolder = workspace:FindFirstChild(player.Name)
-                    if charFolder then
-                        local children = charFolder:GetChildren()
-                        if #children > 0 then
-                            local last = children[#children]
-                            hitbox = last:FindFirstChild("Hitbox")
-                        end
-                    end
-                end
-
-                findHitbox()
-
-                while getgenv().AutoFarmRunning do
-                    if not hitbox or not hitbox:IsDescendantOf(workspace) then
-                        findHitbox()
+                    if pickupRadius and pickupRadius:IsA("BasePart") then
+                        pickupRadius.Size = Vector3.new(0.001, 2000, 2000)
                     end
 
-                    -- Move hitbox forward and enlarge it
-                    if hitbox and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-                        local hrp = player.Character.HumanoidRootPart
-                        local forwardOffset = 0
-                        local newCFrame = hrp.CFrame * CFrame.new(0, 0, -forwardOffset)
-                        hitbox.Position = newCFrame.Position
-                        hitbox.Size = Vector3.new(35, 35, 35)
-                        hitbox.CanCollide = false
-                    end
-
-                    -- Manual remote firing sequence with looped HitboxStart/HitboxEnd
-                    remote:FireServer("SwingStart")
-
-                    -- Loop HitboxStart and HitboxEnd repeatedly during the swing
-                    local swingDuration = 5  -- seconds to hold the swing active; adjust as needed
-                    local startTime = tick()
-                    while tick() - startTime < swingDuration and getgenv().AutoFarmRunning do
-                        remote:FireServer("HitboxStart")
-                        remote:FireServer("HitboxEnd")
-                        task.wait(0.15) -- delay between repeated hitbox triggers
-                    end
-
-                    remote:FireServer("SwingEnd")
-
-                    task.wait(0.15) -- delay between swings; adjust as needed
+                    task.wait(0.1) -- constantly enforce it (adjust speed if needed)
                 end
             end)
         else
-            print("AutoFarm Off")
-            getgenv().AutoFarmRunning = false
+            print("Pickup Radius OFF")
+            getgenv().PickupRadiusRunning = false
+        end
+    end 
+})
+local Toggle = Tabs.AutoFarm:AddToggle("SpeedToggle", 
+{
+    Title = "Super Speed", 
+    Description = "Sets your WalkSpeed to 100",
+    Default = false,
+    Callback = function(state)
+        local player = game:GetService("Players").LocalPlayer
+        local character = player.Character or player.CharacterAdded:Wait()
+        local humanoid = character:WaitForChild("Humanoid")
+
+        if state then
+            print("Speed Toggle ON")
+            getgenv().SpeedToggleRunning = true
+            getgenv().OriginalSpeed = humanoid.WalkSpeed
+
+            task.spawn(function()
+                while getgenv().SpeedToggleRunning do
+                    if humanoid then
+                        humanoid.WalkSpeed = 100
+                    end
+                    task.wait(0.1) -- keep enforcing in case server resets it
+                end
+            end)
+        else
+            print("Speed Toggle OFF")
+            getgenv().SpeedToggleRunning = false
+            if humanoid and getgenv().OriginalSpeed then
+                humanoid.WalkSpeed = getgenv().OriginalSpeed
+            end
+        end
+    end 
+})
+local Toggle = Tabs.AutoFarm:AddToggle("AutoClickToggle", 
+{
+    Title = "Auto Click", 
+    Description = "Automatically clicks using the Click remote",
+    Default = false,
+    Callback = function(state)
+        if state then
+            print("Auto Click ON")
+            getgenv().AutoClick = true
+
+            task.spawn(function()
+                local ReplicatedStorage = game:GetService("ReplicatedStorage")
+                local clickEvent = ReplicatedStorage:WaitForChild("Events"):WaitForChild("Click")
+
+                while getgenv().AutoClick do
+                    clickEvent:FireServer()
+                    task.wait() -- spams every frame (change to 0.1 for slower clicks)
+                end
+            end)
+        else
+            print("Auto Click OFF")
+            getgenv().AutoClick = false
         end
     end 
 })
